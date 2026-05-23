@@ -19,15 +19,16 @@ bind-key l select-pane -R
 # 5. Move status bar to the top
 set-option -g status-position top
 
+# 6. Vi-style keys in copy mode
+set -g mode-keys vi
+
 {{ if eq .chezmoi.os "linux" -}}
-# === Linux Clipboard ===
-set -g copy-mode vi
+# === Linux Clipboard (Wayland) ===
 bind -T copy-mode-vi y send -X copy-pipe-and-cancel "wl-copy"
 {{ end -}}
 
 {{ if eq .chezmoi.os "darwin" -}}
 # === macOS Clipboard ===
-set -g copy-mode vi
 bind -T copy-mode-vi y send -X copy-pipe-and-cancel "pbcopy"
 {{ end -}}
 
