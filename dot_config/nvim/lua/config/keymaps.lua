@@ -39,3 +39,6 @@ vim.keymap.set("n", "<leader>db", function()
   Snacks.dashboard.open()
 end, { desc = "Open Dashboard" })
 
+-- Move buffers left/right
+vim.keymap.set("n", "<leader>bH", "<cmd>BufferLineMovePrev<cr>", { desc = "Move Buffer Left" })
+vim.keymap.set("n", "<leader>bL", "<cmd>BufferLineMoveNext<cr>", { desc = "Move Buffer Right" })
