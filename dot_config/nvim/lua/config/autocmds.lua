@@ -188,6 +188,8 @@ local function start_lockfile_watchers()
             if #active_clients > 0 then
               if vim.fn.exists(":LspRestart") == 2 then
                 vim.cmd("LspRestart")
+              elseif vim.fn.exists(":lsp") == 2 then
+                pcall(vim.cmd, "lsp restart")
               else
                 -- Fallback to pure Lua LSP restart
                 for _, client in ipairs(active_clients) do
