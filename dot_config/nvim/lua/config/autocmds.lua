@@ -135,3 +135,79 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHo
     end
   end,
 })
+
+-- ===================================================================
+-- 3. AUTO-RESTART LSP ON PACKAGE LOCKFILE CHANGES (e.g. uv add, npm install)
+-- ===================================================================
+local active_watchers = {}
+
+local function stop_lockfile_watchers()
+  for _, w in ipairs(active_watchers) do
+    pcall(function()
+      w:stop()
+    end)
+  end
+  active_watchers = {}
+end
+
+local function start_lockfile_watchers()
+  stop_lockfile_watchers()
+
+  local root_patterns = { ".git", "pyproject.toml", "uv.lock", "poetry.lock", "package.json" }
+  local path = vim.api.nvim_buf_get_name(0)
+  if path == "" then
+    path = (vim.uv or vim.loop).cwd()
+  end
+
+  local root_files = vim.fs.find(root_patterns, { upward = true, path = path })
+  local root = #root_files > 0 and vim.fs.dirname(root_files[1]) or nil
+  if not root then
+    return
+  end
+
+  local lockfiles = { "uv.lock", "poetry.lock", "requirements.txt", "package-lock.json", "pnpm-lock.yaml", "yarn.lock" }
+  local uv = vim.uv or vim.loop
+
+  for _, lockfile in ipairs(lockfiles) do
+    local file_path = root .. "/" .. lockfile
+    if uv.fs_stat(file_path) then
+      local w = uv.new_fs_event()
+      if w then
+        local timer = nil
+        w:start(file_path, {}, vim.schedule_wrap(function(err, filename, events)
+          if err then
+            return
+          end
+          if timer then
+            timer:stop()
+          end
+          -- Debounce by 1000ms to allow file writes to settle
+          timer = vim.defer_fn(function()
+            local active_clients = vim.lsp.get_clients()
+            if #active_clients > 0 then
+              vim.cmd("LspRestart")
+              vim.notify("LSP restarted automatically (detected change in " .. lockfile .. ")", vim.log.levels.INFO)
+            end
+          end, 1000)
+        end))
+        table.insert(active_watchers, w)
+      end
+    end
+  end
+end
+
+-- Watch lockfiles when Neovim starts or changes directories
+vim.api.nvim_create_autocmd({ "VimEnter", "DirChanged" }, {
+  group = vim.api.nvim_create_augroup("LspLockfileWatcher", { clear = true }),
+  callback = function()
+    -- Small delay to let project initialization complete
+    vim.defer_fn(start_lockfile_watchers, 1000)
+  end,
+})
+
+-- Safely clean up watchers when Neovim exits
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  group = vim.api.nvim_create_augroup("LspLockfileWatcherCleanup", { clear = true }),
+  callback = stop_lockfile_watchers,
+})
+
