@@ -10,6 +10,12 @@ bind r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded!
 # 3. Enable mouse support (Resizing panes, selecting windows)
 set -g mouse on
 
+# Start windows and panes at 1, not 0
+set -g base-index 1
+set -g pane-base-index 1
+set-window-option -g pane-base-index 1
+set-option -g renumber-windows on
+
 # 4. Use Vim keys (h, j, k, l) for pane navigation
 bind-key h select-pane -L
 bind-key j select-pane -D
@@ -43,6 +49,8 @@ set -g @plugin 'catppuccin/tmux'
 # Catppuccin theme customization (v2.x style)
 set -g @catppuccin_flavor 'mocha' # mocha, macchiato, frappe, latte
 set -g @catppuccin_window_status_style "rounded"
+set -g @catppuccin_window_text " #W"
+set -g @catppuccin_window_current_text " #W"
 
 # Status line configuration
 set -g status-left ""
