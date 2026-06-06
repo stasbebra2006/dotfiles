@@ -183,9 +183,27 @@ local function start_lockfile_watchers()
           end
           -- Debounce by 1000ms to allow file writes to settle
           timer = vim.defer_fn(function()
-            local active_clients = vim.lsp.get_clients()
+            local get_clients = vim.lsp.get_clients or vim.lsp.get_active_clients
+            local active_clients = get_clients()
             if #active_clients > 0 then
-              vim.cmd("LspRestart")
+              if vim.fn.exists(":LspRestart") == 2 then
+                vim.cmd("LspRestart")
+              else
+                -- Fallback to pure Lua LSP restart
+                for _, client in ipairs(active_clients) do
+                  pcall(function() client.stop() end)
+                end
+                vim.defer_fn(function()
+                  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+                    if vim.api.nvim_buf_is_loaded(bufnr) then
+                      local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
+                      if ft and ft ~= "" then
+                        vim.api.nvim_exec_autocmds("FileType", { buf = bufnr, modeline = false })
+                      end
+                    end
+                  end
+                end, 500)
+              end
               vim.notify("LSP restarted automatically (detected change in " .. lockfile .. ")", vim.log.levels.INFO)
             end
           end, 1000)
