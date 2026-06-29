@@ -26,7 +26,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 {{ end -}}
 
 # === Shared Tools ===
-. "$HOME/.local/bin/env"
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
 export EDITOR="nvim"
 export SUDO_EDITOR="nvim"
