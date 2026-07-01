@@ -1,0 +1,125 @@
+" Vim-first PyCharm setup managed by chezmoi.
+" Reload in PyCharm with :source ~/.ideavimrc after restarting the IDE.
+
+" Core behavior
+let mapleader = " "
+set timeout
+set timeoutlen=5000
+set incsearch
+set ignorecase
+set smartcase
+set scrolloff=8
+set clipboard+=unnamed
+set ideajoin
+set ideaput
+set idearefactormode=keep
+
+" IdeaVim extensions and installed IdeaVim plugin extensions.
+set surround
+set commentary
+set ReplaceWithRegister
+set argtextobj
+set targets
+set textobj-entire
+set textobj-indent
+set functextobj
+set classtextobj
+set exchange
+set matchit
+set highlightedyank
+set sneak
+set easymotion
+set quickscope
+" Which-Key 0.11.2 needs IdeaVim 2.39.x; IdeaVim 2.40.0 removed
+" Argument$Type.DIGRAPH and crashes this plugin.
+set which-key
+
+" Quickscope: highlight only while using f/F/t/T.
+let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
+
+" EasyMotion/Flash-like jumps.
+nmap s <Plug>(easymotion-s)
+xmap s <Plug>(easymotion-s)
+omap s <Plug>(easymotion-s)
+nmap <leader>j <Plug>(easymotion-bd-w)
+xmap <leader>j <Plug>(easymotion-bd-w)
+omap <leader>j <Plug>(easymotion-bd-w)
+nmap <leader>J <Plug>(easymotion-bd-jk)
+nnoremap <leader>fl <Action>(AceLineAction)
+nnoremap <leader>ja <Action>(AceAction)
+nnoremap <leader>jw <Action>(AceWordAction)
+nnoremap <leader>jl <Action>(AceLineAction)
+
+" Global navigation/search.
+nnoremap <leader><space> <Action>(SearchEverywhere)
+nnoremap <leader>ss <Action>(SearchEverywhere)
+nnoremap <leader>ff <Action>(GotoFile)
+nnoremap <leader>fg <Action>(FindInPath)
+nnoremap <leader>/ <Action>(FindInPath)
+nnoremap <leader>fr <Action>(RecentFiles)
+nnoremap <leader>sf <Action>(FileStructurePopup)
+nnoremap <leader>sk <Action>(GotoAction)
+
+" Project/tool windows.
+nnoremap <leader>ef <Action>(ActivateProjectToolWindow)
+nnoremap <leader>er <Action>(SelectInProjectView)
+nnoremap <leader>tt <Action>(ActivateTerminalToolWindow)
+nnoremap <leader>xx <Action>(ActivateProblemsViewToolWindow)
+nnoremap <leader>gg <Action>(Vcs.Log.OpenAnotherTab)
+nnoremap <leader>gc <Action>(ActivateCommitToolWindow)
+nnoremap <leader>db <Action>(ActivateDatabaseToolWindow)
+nnoremap <leader>u <Action>(HideActiveWindow)
+nnoremap <leader>we <Action>(EditorEscape)
+
+" Buffers, tabs, and jump history.
+nnoremap <S-h> <Action>(PreviousTab)
+nnoremap <S-l> <Action>(NextTab)
+nnoremap <leader>bh <Action>(PreviousTab)
+nnoremap <leader>bl <Action>(NextTab)
+nnoremap <leader>bb <Action>(RecentFiles)
+nnoremap <leader>bj <Action>(Switcher)
+nnoremap <leader>bd <Action>(CloseContent)
+nnoremap <leader>` <Action>(Back)
+nnoremap <leader>bo <Action>(Forward)
+
+" Splits and editor layout.
+nnoremap <leader>wv <Action>(SplitVertically)
+nnoremap <leader>ws <Action>(SplitHorizontally)
+nnoremap <leader>wd <Action>(Unsplit)
+nnoremap <leader>wr <Action>(ChangeSplitOrientation)
+nnoremap <leader>wm <Action>(MoveEditorToOppositeTabGroup)
+
+" Code navigation and IDE actions.
+nnoremap gd <Action>(GotoDeclaration)
+nnoremap gD <Action>(GotoTypeDeclaration)
+nnoremap gi <Action>(GotoImplementation)
+nnoremap gR <Action>(ShowUsages)
+nnoremap K <Action>(QuickJavaDoc)
+nnoremap <C-k> <Action>(ParameterInfo)
+nnoremap <leader>ca <Action>(ShowIntentionActions)
+nnoremap <leader>cr <Action>(RenameElement)
+nnoremap <leader>cf <Action>(ReformatCode)
+nnoremap <leader>co <Action>(OptimizeImports)
+nnoremap <leader>cu <Action>(FindUsages)
+
+" Diagnostics, changes, and structural movement.
+nnoremap ]d <Action>(GotoNextError)
+nnoremap [d <Action>(GotoPreviousError)
+nnoremap ]c <Action>(VcsShowNextChangeMarker)
+nnoremap [c <Action>(VcsShowPrevChangeMarker)
+nnoremap ]m <Action>(MethodDown)
+nnoremap [m <Action>(MethodUp)
+nnoremap ]] <Action>(MethodDown)
+nnoremap [[ <Action>(MethodUp)
+
+" Clipboard/helpers.
+nnoremap <leader>cp <Action>(CopyPaths)
+nnoremap <leader>cR <Action>(CopyReference)
+
+" Native Vim/plugin editing kept available:
+" - ci(, ca", di{, etc. from Vim + targets
+" - cin), can), cil", cal" for next/last targets
+" - cia/caa for arguments, cim/cam for methods, cac for classes
+" - cs"', ds), ysiw" from surround
+" - gcc/gc from commentary
+" - gr from ReplaceWithRegister
