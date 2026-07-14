@@ -50,26 +50,25 @@ bind -T copy-mode-vi y send -X copy-pipe-and-cancel "pbcopy"
 
 # List of plugins
 set -g @plugin 'tmux-plugins/tpm'
-set -g @plugin 'catppuccin/tmux'
 
-# Catppuccin theme customization (v2.x style)
-set -g @catppuccin_flavor 'mocha' # mocha, macchiato, frappe, latte
-set -g @catppuccin_window_status_style "rounded"
-set -g @catppuccin_window_text " #W"
-set -g @catppuccin_window_current_text " #W"
+# Neutral theme
+set -g status-style "bg=colour235,fg=colour250"
+set -g status-justify centre
+set -g status-left-length 40
+set -g status-right-length 60
+set -g status-left "#{?client_prefix,#[bg=colour250\,fg=colour235\,bold] PREFIX #[bg=colour235] ,}#[fg=colour255,bold] #S #[default]"
+set -g status-right "#[fg=colour245]%Y-%m-%d  %H:%M "
 
-# Status line configuration
-set -g status-left ""
-set -g status-right-length 100
-set -g status-left-length 100
+set -g window-status-separator ""
+set -g window-status-format "#[fg=colour245] #I:#W "
+set -g window-status-current-format "#[bg=colour240,fg=colour255,bold] #I:#W #[default]"
+set -g window-status-activity-style "fg=colour255,bold"
 
-set -g status-right "#{E:@catppuccin_status_application}"
-set -ag status-right "#{E:@catppuccin_status_session}"
-set -ag status-right "#{E:@catppuccin_status_date_time}"
-
-# Separators
-set -g @catppuccin_status_left_separator "█"
-set -g @catppuccin_status_right_separator "█"
+set -g pane-border-style "fg=colour238"
+set -g pane-active-border-style "fg=colour245"
+set -g message-style "bg=colour240,fg=colour255"
+set -g mode-style "bg=colour240,fg=colour255"
+set -g clock-mode-colour colour245
 
 # Initialize TMUX plugin manager (Keep this line at the very bottom)
 run '~/.tmux/plugins/tpm/tpm'
