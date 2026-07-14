@@ -24,7 +24,8 @@ Linux-only behavior:
 - Pacman/paru update alias
 - Suspend aliases using `systemctl`
 
-macOS-only behavior initializes Homebrew through `/opt/homebrew/bin/brew`.
+macOS-only behavior initializes Homebrew through `/opt/homebrew/bin/brew` and
+provides an `update` alias for Homebrew maintenance.
 
 Chezmoi Zsh completion is installed separately under
 `~/.local/share/zsh/site-functions/_chezmoi`; it is not currently represented
