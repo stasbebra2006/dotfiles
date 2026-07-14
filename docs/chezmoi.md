@@ -13,6 +13,7 @@ Important mappings:
 dot_zshrc.tmpl                       -> ~/.zshrc
 dot_config/nvim/                     -> ~/.config/nvim/
 dot_config/tmux/tmux.conf.tmpl       -> ~/.config/tmux/tmux.conf
+dot_local/share/kxmlgui5/konsole/    -> ~/.local/share/kxmlgui5/konsole/
 ```
 
 Chezmoi converts `dot_` to `.`. A `.tmpl` suffix means the source is rendered

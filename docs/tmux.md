@@ -3,8 +3,10 @@
 ## Managed Config
 
 ```text
-Source: dot_config/tmux/tmux.conf.tmpl
-Target: ~/.config/tmux/tmux.conf
+Tmux source:   dot_config/tmux/tmux.conf.tmpl
+Tmux target:   ~/.config/tmux/tmux.conf
+Konsole source: dot_local/share/kxmlgui5/konsole/konsoleui.rc
+Konsole target: ~/.local/share/kxmlgui5/konsole/konsoleui.rc
 ```
 
 The target path is shared by Linux and macOS. The template changes only the
@@ -20,11 +22,29 @@ branches. Do not replace the template with the rendered Linux file.
 
 - Prefix: `Ctrl-s`
 - Reload: prefix followed by `r`
+- Prefix-free window navigation: `Ctrl-Tab` for next and `Ctrl-Shift-Tab` for
+  previous
 - Mouse enabled and window/pane indexes start at 1
 - Vim pane navigation: `h`, `j`, `k`, `l`
 - Current-directory splits: `|` and `-`
 - Status bar at the top with the neutral theme
 - Copy mode uses vi keys
+
+## Konsole Integration
+
+Konsole normally reserves `Ctrl-Tab` and `Ctrl-Shift-Tab` for its **Last Used
+Tabs** actions, preventing those keys from reaching tmux. On Linux, chezmoi
+therefore manages `konsoleui.rc` with these Konsole shortcuts moved to:
+
+- Last Used Tabs: `Ctrl-Up`
+- Last Used Tabs (Reverse): `Ctrl-Down`
+
+The tmux reverse binding is written as `C-BTab` because tmux normalizes an
+incoming `Ctrl-Shift-Tab` to Control-Backtab. Both the Konsole override and the
+tmux bindings are required for prefix-free switching to work.
+
+The Konsole file is excluded on non-Linux systems by `.chezmoiignore`. After
+changing its shortcuts, restart Konsole so new windows load the override.
 
 TPM is declared as `tmux-plugins/tpm` and loaded at runtime from:
 
