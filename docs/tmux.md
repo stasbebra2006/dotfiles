@@ -24,6 +24,8 @@ branches. Do not replace the template with the rendered Linux file.
 - Reload: prefix followed by `r`
 - Prefix-free window navigation: `Ctrl-Tab` for next and `Ctrl-Shift-Tab` for
   previous
+- Extended-key reporting enabled so terminals can distinguish those modified
+  Tab keys from ordinary Tab and Backtab
 - Mouse enabled and window/pane indexes start at 1
 - Vim pane navigation: `h`, `j`, `k`, `l`
 - Current-directory splits: `|` and `-`
@@ -42,6 +44,9 @@ therefore manages `konsoleui.rc` with these Konsole shortcuts moved to:
 The tmux reverse binding is written as `C-BTab` because tmux normalizes an
 incoming `Ctrl-Shift-Tab` to Control-Backtab. Both the Konsole override and the
 tmux bindings are required for prefix-free switching to work.
+
+On iTerm2, also enable **Profiles > Keys > General > Apps can change how keys
+are reported**. This lets tmux negotiate extended-key reporting with iTerm2.
 
 The Konsole file is excluded on non-Linux systems by `.chezmoiignore`. After
 changing its shortcuts, restart Konsole so new windows load the override.
