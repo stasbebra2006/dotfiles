@@ -8,6 +8,19 @@ set -g extended-keys on
 bind-key -n C-Tab next-window
 bind-key -n C-BTab previous-window
 
+# Toggle passthrough mode for nested tmux sessions over SSH. While enabled,
+# this tmux layer only handles F12 and forwards every other key to the pane.
+bind-key -T root F12 \
+  set-option prefix None \; \
+  set-option key-table off \; \
+  set-option status-style "bg=colour52,fg=colour255" \; \
+  display-message "TMUX PASSTHROUGH"
+bind-key -T off F12 \
+  set-option -u prefix \; \
+  set-option -u key-table \; \
+  set-option -u status-style \; \
+  display-message "TMUX ACTIVE"
+
 # 2. Bind 'r' to reload configuration easily
 unbind r
 bind r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded!"

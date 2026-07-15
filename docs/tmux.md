@@ -25,6 +25,9 @@ branches. Do not replace the template with a rendered machine-specific file.
 - Reload: prefix followed by `r`
 - Prefix-free window navigation: `Ctrl-Tab` for next and `Ctrl-Shift-Tab` for
   previous
+- Nested-session passthrough: `F12` temporarily disables the current tmux
+  layer so its shortcuts reach a tmux session running inside an SSH pane;
+  press `F12` again to restore the outer layer
 - Extended-key reporting enabled so terminals can distinguish those modified
   Tab keys from ordinary Tab and Backtab
 - Mouse enabled and window/pane indexes start at 1
