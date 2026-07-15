@@ -1,5 +1,5 @@
 AGENTS.md
 docs/
 {{ if ne .chezmoi.os "linux" }}
-.local/share/kxmlgui5/konsole/konsoleui.rc
+.local/share/kxmlgui5/
 {{ end }}
