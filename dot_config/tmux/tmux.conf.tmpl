@@ -57,12 +57,15 @@ set-option -g status-position top
 # 6. Vi-style keys in copy mode
 set -g mode-keys vi
 
+# Accept OSC 52 from pane applications so clipboard updates from a nested tmux
+# can be relayed through this tmux layer to the physical terminal.
+set -s set-clipboard on
+
 {{ if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch") -}}
 # === Arch Linux Clipboard (Wayland) ===
 bind -T copy-mode-vi y send -X copy-pipe-and-cancel "wl-copy"
 {{ else if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") -}}
 # === Ubuntu Server Clipboard (OSC 52 over SSH) ===
-set -s set-clipboard on
 bind -T copy-mode-vi y send -X copy-selection-and-cancel
 {{ else if eq .chezmoi.os "darwin" -}}
 # === macOS Clipboard ===

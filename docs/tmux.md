@@ -37,6 +37,19 @@ branches. Do not replace the template with a rendered machine-specific file.
 - Status bar at the top with the neutral theme
 - Copy mode uses vi keys
 
+## Nested Tmux over SSH
+
+The normal path is `local terminal -> outer tmux -> SSH -> inner tmux`. Both
+hosts use this shared config. The outer layer receives input first; `F12`
+temporarily disables its bindings (red status bar) so keys and mouse events
+reach the inner layer, and `F12` restores it. The `extkeys` declarations preserve
+`Ctrl-Tab` and `Ctrl-Shift-Tab` across both layers.
+
+Inner mouse-copy emits OSC 52. `set-clipboard on` lets each tmux layer accept and
+relay that sequence until the local terminal updates its clipboard. This also
+allows trusted pane applications to change the clipboard. Hold `Shift` while
+dragging to bypass tmux and select locally in the terminal instead.
+
 ## Konsole Integration
 
 Konsole normally reserves `Ctrl-Tab` and `Ctrl-Shift-Tab` for its **Last Used
