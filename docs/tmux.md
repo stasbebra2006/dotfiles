@@ -29,7 +29,8 @@ branches. Do not replace the template with a rendered machine-specific file.
   layer so its shortcuts reach a tmux session running inside an SSH pane;
   press `F12` again to restore the outer layer
 - Extended-key reporting enabled so terminals can distinguish those modified
-  Tab keys from ordinary Tab and Backtab
+  Tab keys from ordinary Tab and Backtab; `xterm*`, `konsole*`, and nested
+  `tmux*` clients are explicitly marked with the `extkeys` feature
 - Mouse enabled and window/pane indexes start at 1
 - Vim pane navigation: `h`, `j`, `k`, `l`
 - Current-directory splits: `|` and `-`
