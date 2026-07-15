@@ -73,3 +73,15 @@ single operation.
 are not written to `~/AGENTS.md` or `~/docs` by chezmoi.
 
 `.ideavimrc` is intentionally unmanaged until that setup is finished.
+
+## Machine Variants
+
+Templates support three machine types:
+
+- Arch Linux desktop: detected by `.chezmoi.osRelease.id == "arch"`
+- Ubuntu Server: detected by `.chezmoi.osRelease.id == "ubuntu"`
+- macOS: detected by `.chezmoi.os == "darwin"`
+
+Use OS-release conditions for Linux-specific behavior. The Ubuntu Server is
+accessed over SSH, so it uses OSC 52 clipboard forwarding and does not deploy
+the Arch desktop's Konsole override.

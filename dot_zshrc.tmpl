@@ -12,15 +12,16 @@ source $ZSH/oh-my-zsh.sh
 # PATH
 export PATH="$HOME/.local/bin:$PATH"
 
-{{ if eq .chezmoi.os "linux" -}}
+{{ if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch") -}}
 # === Arch Linux Only ===
 alias mainconfig="nvim ~/.config/hypr/hyprland.conf"
 alias update="sudo pacman -Syu && paru -Sua"
 alias zz="systemctl suspend"
 alias suspend="systemctl suspend"
-{{ end -}}
-
-{{ if eq .chezmoi.os "darwin" -}}
+{{ else if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") -}}
+# === Ubuntu Server Only ===
+alias update="sudo apt update && sudo apt upgrade"
+{{ else if eq .chezmoi.os "darwin" -}}
 # === macOS Only ===
 eval "$(/opt/homebrew/bin/brew shellenv)"
 alias update="brew update && brew upgrade && brew cleanup"

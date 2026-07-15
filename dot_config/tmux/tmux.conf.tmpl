@@ -39,12 +39,14 @@ set-option -g status-position top
 # 6. Vi-style keys in copy mode
 set -g mode-keys vi
 
-{{ if eq .chezmoi.os "linux" -}}
-# === Linux Clipboard (Wayland) ===
+{{ if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch") -}}
+# === Arch Linux Clipboard (Wayland) ===
 bind -T copy-mode-vi y send -X copy-pipe-and-cancel "wl-copy"
-{{ end -}}
-
-{{ if eq .chezmoi.os "darwin" -}}
+{{ else if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") -}}
+# === Ubuntu Server Clipboard (OSC 52 over SSH) ===
+set -s set-clipboard on
+bind -T copy-mode-vi y send -X copy-selection-and-cancel
+{{ else if eq .chezmoi.os "darwin" -}}
 # === macOS Clipboard ===
 bind -T copy-mode-vi y send -X copy-pipe-and-cancel "pbcopy"
 {{ end -}}
@@ -76,4 +78,4 @@ set -g mode-style "bg=colour240,fg=colour255"
 set -g clock-mode-colour colour245
 
 # Initialize TMUX plugin manager (Keep this line at the very bottom)
-run '~/.tmux/plugins/tpm/tpm'
+run '~/.config/tmux/plugins/tpm/tpm'

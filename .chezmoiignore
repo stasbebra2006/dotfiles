@@ -1,5 +1,5 @@
 AGENTS.md
 docs/
-{{ if ne .chezmoi.os "linux" }}
+{{ if not (and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch")) }}
 .local/share/kxmlgui5/
 {{ end }}

@@ -9,14 +9,15 @@ Konsole source: dot_local/share/kxmlgui5/konsole/konsoleui.rc
 Konsole target: ~/.local/share/kxmlgui5/konsole/konsoleui.rc
 ```
 
-The target path is shared by Linux and macOS. The template changes only the
-copy-mode clipboard command:
+The target path is shared by Arch Linux, Ubuntu Server, and macOS. The template
+changes only clipboard integration:
 
-- Linux/Wayland: `wl-copy`
+- Arch Linux/Wayland: `wl-copy`
+- Ubuntu Server/SSH: tmux OSC 52 clipboard forwarding
 - macOS: `pbcopy`
 
-When importing live changes, edit the template and retain both conditional
-branches. Do not replace the template with the rendered Linux file.
+When importing live changes, edit the template and retain all three conditional
+branches. Do not replace the template with a rendered machine-specific file.
 
 ## Current Shared Behavior
 
@@ -35,8 +36,9 @@ branches. Do not replace the template with the rendered Linux file.
 ## Konsole Integration
 
 Konsole normally reserves `Ctrl-Tab` and `Ctrl-Shift-Tab` for its **Last Used
-Tabs** actions, preventing those keys from reaching tmux. On Linux, chezmoi
-therefore manages `konsoleui.rc` with these Konsole shortcuts moved to:
+Tabs** actions, preventing those keys from reaching tmux. On the Arch Linux
+desktop, chezmoi therefore manages `konsoleui.rc` with these Konsole shortcuts
+moved to:
 
 - Last Used Tabs: `Ctrl-Up`
 - Last Used Tabs (Reverse): `Ctrl-Down`
@@ -48,16 +50,20 @@ tmux bindings are required for prefix-free switching to work.
 On iTerm2, also enable **Profiles > Keys > General > Apps can change how keys
 are reported**. This lets tmux negotiate extended-key reporting with iTerm2.
 
-The Konsole file is excluded on non-Linux systems by `.chezmoiignore`. After
-changing its shortcuts, restart Konsole so new windows load the override.
+The Konsole file is excluded on Ubuntu Server and non-Linux systems by
+`.chezmoiignore`. The SSH client machine owns its terminal configuration. After
+changing shortcuts on the Arch desktop, restart Konsole so new windows load
+the override.
+
+On Ubuntu Server, tmux copy mode stores the selection in tmux and emits OSC 52.
+The escape sequence crosses SSH so a compatible client terminal can place it
+in the client machine's clipboard. The client terminal must permit OSC 52.
 
 TPM is declared as `tmux-plugins/tpm` and loaded at runtime from:
 
 ```text
-~/.tmux/plugins/tpm/tpm
+~/.config/tmux/plugins/tpm/tpm
 ```
 
-There are also plugin copies managed under `~/.config/tmux/plugins`. These are
-not the path loaded by the current tmux config. Treat this as a known layout
-inconsistency; do not remove or reorganize plugin directories without explicit
-approval.
+This path is managed by chezmoi, so the tmux configuration is self-contained on
+a fresh Arch Linux, Ubuntu Server, or macOS installation.
