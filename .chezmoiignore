@@ -1,3 +1,5 @@
+README.md
+LICENSE
 AGENTS.md
 docs/
 {{ if not (and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch")) }}

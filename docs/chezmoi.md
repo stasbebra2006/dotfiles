@@ -69,8 +69,9 @@ single operation.
 
 ## Repository-Only Files
 
-`AGENTS.md` and `docs/` are listed in `.chezmoiignore`. They remain in Git but
-are not written to `~/AGENTS.md` or `~/docs` by chezmoi.
+`README.md`, `LICENSE`, `AGENTS.md`, and `docs/` are listed in
+`.chezmoiignore`. They remain in Git but are not written into the home
+directory by chezmoi.
 
 `.ideavimrc` is intentionally unmanaged until that setup is finished.
 

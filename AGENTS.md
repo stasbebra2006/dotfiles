@@ -44,5 +44,6 @@ whether anything was applied, committed, or pushed.
 - `docs/tmux.md`: tmux template, clipboard conditions, and plugin paths
 - `docs/zsh.md`: zsh template and OS-specific behavior
 
-`AGENTS.md` and `docs/` are source-repository documentation. They are excluded
-by `.chezmoiignore` and must not be deployed into the home directory.
+`README.md`, `LICENSE`, `AGENTS.md`, and `docs/` are source-repository files.
+They are excluded by `.chezmoiignore` and must not be deployed into the home
+directory.
