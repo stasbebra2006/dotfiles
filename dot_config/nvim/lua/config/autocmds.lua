@@ -14,8 +14,8 @@ local function set_custom_hl()
   -- ===================================================================
   -- Link directory path highlight to 'Directory' (usually bright blue/cyan) for high readability
   vim.api.nvim_set_hl(0, "SnacksPickerDir", { link = "Directory" })
-  -- Link selected cursor line in the list to 'PmenuSel' for premium visual distinction
-  vim.api.nvim_set_hl(0, "SnacksPickerListCursorLine", { link = "PmenuSel" })
+  -- Use the standard cursor-line highlight for the selected picker row
+  vim.api.nvim_set_hl(0, "SnacksPickerListCursorLine", { link = "CursorLine" })
 
   -- ===================================================================
   -- 2. CATPPUCCIN SYNTAX COLORS (FOR CODE TEXT ONLY - NO UI OVERRIDES)
@@ -230,4 +230,3 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
   group = vim.api.nvim_create_augroup("LspLockfileWatcherCleanup", { clear = true }),
   callback = stop_lockfile_watchers,
 })
-
