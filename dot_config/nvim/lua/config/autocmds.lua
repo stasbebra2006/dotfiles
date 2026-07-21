@@ -16,6 +16,8 @@ local function set_custom_hl()
   vim.api.nvim_set_hl(0, "SnacksPickerDir", { link = "Directory" })
   -- Use the standard cursor-line highlight for the selected picker row
   vim.api.nvim_set_hl(0, "SnacksPickerListCursorLine", { link = "CursorLine" })
+  -- Use the same red Flash jump labels as the VS Code Neovim setup
+  vim.api.nvim_set_hl(0, "FlashLabel", { fg = "#ffffff", bg = "#b94a48", bold = true })
 
   -- ===================================================================
   -- 2. CATPPUCCIN SYNTAX COLORS (FOR CODE TEXT ONLY - NO UI OVERRIDES)
@@ -229,4 +231,15 @@ vim.api.nvim_create_autocmd({ "VimEnter", "DirChanged" }, {
 vim.api.nvim_create_autocmd("VimLeavePre", {
   group = vim.api.nvim_create_augroup("LspLockfileWatcherCleanup", { clear = true }),
   callback = stop_lockfile_watchers,
+})
+
+-- Keep deletes and changes in Vim's internal registers while copying yanks
+-- to the system clipboard.
+vim.api.nvim_create_autocmd("TextYankPost", {
+  group = vim.api.nvim_create_augroup("YankToSystemClipboard", { clear = true }),
+  callback = function()
+    if vim.v.event.operator == "y" then
+      vim.fn.setreg("+", vim.v.event.regcontents, vim.v.event.regtype)
+    end
+  end,
 })

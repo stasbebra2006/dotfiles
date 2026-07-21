@@ -3,3 +3,4 @@
 -- Add any additional options here
 vim.opt.showcmd = true
 vim.opt.laststatus = 3
+vim.opt.clipboard = ""
