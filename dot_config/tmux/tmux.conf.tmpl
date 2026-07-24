@@ -13,18 +13,18 @@ set -g terminal-features[102] 'tmux*:extkeys'
 bind-key -n C-Tab next-window
 bind-key -n C-BTab previous-window
 
-# Toggle passthrough mode for nested tmux sessions over SSH. While enabled,
-# this tmux layer only handles F12 and forwards every other key to the pane.
+# Toggle passthrough mode for nested tmux sessions over SSH. The status-right
+# indicator shows the current mode without changing the status bar background.
 bind-key -T root F12 \
+  set-option @passthrough on \; \
   set-option prefix None \; \
   set-option key-table off \; \
-  set-option status-style "bg=colour52,fg=colour255" \; \
-  display-message "TMUX PASSTHROUGH"
+  refresh-client -S
 bind-key -T off F12 \
+  set-option -u @passthrough \; \
   set-option -u prefix \; \
   set-option -u key-table \; \
-  set-option -u status-style \; \
-  display-message "TMUX ACTIVE"
+  refresh-client -S
 
 # 2. Bind 'r' to reload configuration easily
 unbind r
@@ -85,7 +85,7 @@ set -g status-justify centre
 set -g status-left-length 40
 set -g status-right-length 60
 set -g status-left "#{?client_prefix,#[bg=colour250\,fg=colour235\,bold] PREFIX #[bg=colour235] ,}#[fg=colour255,bold] #S #[default]"
-set -g status-right "#[fg=colour245]%Y-%m-%d  %H:%M "
+set -g status-right "#{?@passthrough,#[fg=colour203] PASSTHROUGH ,#[fg=colour245] ACTIVE }#[fg=colour238]│ #[fg=colour245]%Y-%m-%d  %H:%M "
 
 set -g window-status-separator ""
 set -g window-status-format "#[fg=colour245] #I:#W "

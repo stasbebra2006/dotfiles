@@ -39,6 +39,10 @@ vim.keymap.set("n", "<leader>db", function()
   Snacks.dashboard.open()
 end, { desc = "Open Dashboard" })
 
+-- Cycle through buffers
+vim.keymap.set("n", "<C-Tab>", "<cmd>BufferLineCycleNext<cr>", { desc = "Next Buffer" })
+vim.keymap.set("n", "<C-S-Tab>", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous Buffer" })
+
 -- Move buffers left/right
 vim.keymap.set("n", "<leader>bH", "<cmd>BufferLineMovePrev<cr>", { desc = "Move Buffer Left" })
 vim.keymap.set("n", "<leader>bL", "<cmd>BufferLineMoveNext<cr>", { desc = "Move Buffer Right" })

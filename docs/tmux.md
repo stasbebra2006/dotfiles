@@ -27,7 +27,8 @@ branches. Do not replace the template with a rendered machine-specific file.
   previous
 - Nested-session passthrough: `F12` temporarily disables the current tmux
   layer so its shortcuts reach a tmux session running inside an SSH pane;
-  press `F12` again to restore the outer layer
+  press `F12` again to restore the outer layer. A right-side status indicator
+  always shows `ACTIVE` or `PASSTHROUGH`
 - Extended-key reporting enabled so terminals can distinguish those modified
   Tab keys from ordinary Tab and Backtab; `xterm*`, `konsole*`, and nested
   `tmux*` clients are explicitly marked with the `extkeys` feature
@@ -41,9 +42,11 @@ branches. Do not replace the template with a rendered machine-specific file.
 
 The normal path is `local terminal -> outer tmux -> SSH -> inner tmux`. Both
 hosts use this shared config. The outer layer receives input first; `F12`
-temporarily disables its bindings (red status bar) so keys and mouse events
-reach the inner layer, and `F12` restores it. The `extkeys` declarations preserve
-`Ctrl-Tab` and `Ctrl-Shift-Tab` across both layers.
+temporarily disables its bindings so keys and mouse events reach the inner
+layer, and `F12` restores it. The status bar keeps its neutral background while
+the right-side indicator changes from `ACTIVE` to red-text `PASSTHROUGH`. The
+`extkeys` declarations preserve `Ctrl-Tab` and `Ctrl-Shift-Tab` across both
+layers.
 
 Inner mouse-copy emits OSC 52. `set-clipboard on` lets each tmux layer accept and
 relay that sequence until the local terminal updates its clipboard. This also

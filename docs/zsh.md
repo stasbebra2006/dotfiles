@@ -15,7 +15,7 @@ Shared behavior:
 
 - Oh My Zsh with the `robbyrussell` theme
 - `git` plugin
-- `~/.local/bin` added to `PATH`
+- `~/.npm-global/bin`, `/usr/bin`, and `~/.local/bin` added to `PATH`
 - Optional sourcing of `~/.local/bin/env`
 - `EDITOR` and `SUDO_EDITOR` set to `nvim`
 
