@@ -32,6 +32,8 @@ branches. Do not replace the template with a rendered machine-specific file.
 - Extended-key reporting enabled so terminals can distinguish those modified
   Tab keys from ordinary Tab and Backtab; `xterm*`, `konsole*`, and nested
   `tmux*` clients are explicitly marked with the `extkeys` feature
+- Synchronized terminal updates enabled for `xterm*` and `konsole*` clients so
+  rapid full-screen redraws are presented as complete frames
 - Mouse enabled and window/pane indexes start at 1
 - Vim pane navigation: `h`, `j`, `k`, `l`
 - Current-directory splits: `|` and `-`

@@ -5,10 +5,10 @@ bind C-s send-prefix
 
 # Switch tmux windows without the prefix
 set -g extended-keys on
-# Preserve modified keys through physical terminals and nested tmux clients.
+# Preserve modified keys and synchronized redraws through physical terminals.
 # Fixed array indexes make reloading this config idempotent.
-set -g terminal-features[100] 'xterm*:extkeys'
-set -g terminal-features[101] 'konsole*:extkeys'
+set -g terminal-features[100] 'xterm*:extkeys:sync'
+set -g terminal-features[101] 'konsole*:extkeys:sync'
 set -g terminal-features[102] 'tmux*:extkeys'
 bind-key -n C-Tab next-window
 bind-key -n C-BTab previous-window
