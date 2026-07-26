@@ -38,7 +38,16 @@ required for the integration to work on another machine.
 
 ## Terminal Neovim Theme
 
-Standalone Neovim uses the dependency-free `vscode-clean` colorscheme:
+Standalone Neovim uses the dependency-free `previous-custom` colorscheme by
+default. It combines Neovim's built-in `default` interface with the former
+Catppuccin syntax highlights and Snacks/Flash overrides:
+
+```text
+~/.config/nvim/colors/previous-custom.lua
+~/.config/nvim/lua/previous_custom/theme.lua
+```
+
+The newer `vscode-clean` theme remains available separately:
 
 ```text
 ~/.config/nvim/colors/vscode-clean.lua
@@ -47,23 +56,10 @@ Standalone Neovim uses the dependency-free `vscode-clean` colorscheme:
 ~/.config/nvim/lua/lualine/themes/vscode-clean.lua
 ```
 
-It uses a VS Code Dark-like charcoal UI with blue, cyan, green, yellow, orange,
-and red syntax accents. Purple and magenta are intentionally excluded,
-including compatibility groups whose upstream names contain `Purple`.
-`lua/config/autocmds.lua` reapplies plugin-specific highlights after LazyVim
-loads and when the scheme is selected again.
-
-The earlier hybrid theme is preserved separately as `previous-custom`. It
-combines Neovim's built-in `default` interface with the former Catppuccin
-syntax highlights and Snacks/Flash overrides:
-
-```text
-~/.config/nvim/colors/previous-custom.lua
-~/.config/nvim/lua/previous_custom/theme.lua
-```
-
-Use `<leader>uC` to choose it interactively, or run
-`:colorscheme previous-custom`. The startup theme remains `vscode-clean`.
+Use `<leader>uC` to switch themes interactively, or run
+`:colorscheme vscode-clean`. `lua/config/autocmds.lua` reapplies
+plugin-specific highlights after LazyVim loads and when either local scheme is
+selected again.
 
 ## Responsibility Split
 
