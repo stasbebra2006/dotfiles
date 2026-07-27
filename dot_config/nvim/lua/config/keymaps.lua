@@ -2,6 +2,20 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 
+-- Paste from the system clipboard by default while preserving explicit registers
+local function paste_command(command)
+  local register = vim.v.register == '"' and "+" or vim.v.register
+  return '"' .. register .. command
+end
+
+vim.keymap.set("n", "p", function()
+  return paste_command("p")
+end, { expr = true, desc = "Paste Clipboard After" })
+
+vim.keymap.set("n", "P", function()
+  return paste_command("P")
+end, { expr = true, desc = "Paste Clipboard Before" })
+
 -- Reveal current file in explorer
 vim.keymap.set("n", "<leader>er", function()
   Snacks.explorer.reveal()
@@ -25,6 +39,32 @@ vim.keymap.set("n", "<leader>cn", function()
   vim.fn.setreg("+", name)
   vim.notify('Copied: ' .. name)
 end, { desc = "Copy Filename" })
+
+-- Copy Python import path
+vim.keymap.set("n", "<leader>ci", function()
+  local file = vim.api.nvim_buf_get_name(0)
+  if file == "" or not file:match("%.py$") then
+    vim.notify("Current buffer is not a Python file", vim.log.levels.WARN)
+    return
+  end
+
+  local root = LazyVim.root({ buf = 0, normalize = true })
+  local relative = vim.fs.relpath(root, file)
+  if relative == nil or relative:match("^%.%.") then
+    vim.notify("Current file is outside the project root", vim.log.levels.WARN)
+    return
+  end
+
+  local import_path = relative
+    :gsub("\\", "/")
+    :gsub("^src/", "")
+    :gsub("%.py$", "")
+    :gsub("/__init__$", "")
+    :gsub("/", ".")
+
+  vim.fn.setreg("+", import_path)
+  vim.notify("Copied import path: " .. import_path)
+end, { desc = "Copy Python Import Path" })
 
 -- Terminal at current file directory
 vim.keymap.set("n", "<leader>fT", function()
