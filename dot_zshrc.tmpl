@@ -23,7 +23,7 @@ export PATH="$HOME/.local/bin:$PATH"
 {{ if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch") -}}
 # === Arch Linux Only ===
 alias mainconfig="nvim ~/.config/hypr/hyprland.conf"
-alias update="sudo pacman -Syu && paru -Sua"
+alias update="sudo pacman -Syu --noconfirm && paru -Sua --noconfirm"
 alias zz="systemctl suspend"
 alias suspend="systemctl suspend"
 {{ else if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") -}}

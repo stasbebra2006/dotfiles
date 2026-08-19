@@ -4,3 +4,5 @@
 vim.opt.showcmd = true
 vim.opt.laststatus = 3
 vim.opt.clipboard = ""
+vim.opt.number = true
+vim.opt.relativenumber = false
