@@ -1,9 +1,5 @@
 ## User Preferences
 
-<!-- deepagents:onboarding-name:start -->
-- The user's preferred name is "Stasbebra2006".
-<!-- deepagents:onboarding-name:end -->
-
 ### Communication
 
 - Do not infer personal attributes such as age or a shortened real name from the username; use neutral example data. Preserve the user's natural speaking style in drafts and rewrites, making only obvious corrections unless a polished version is requested.
