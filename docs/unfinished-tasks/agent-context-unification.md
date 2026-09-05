@@ -15,8 +15,13 @@
   map-to-hypothesis-to-measurement reasoning cycle. The independent dcode and
   Codex regular files now contain the same reviewed preferences as the source;
   Codex was applied through chezmoi and dcode was updated manually.
-- Exact resume point: future preference changes should begin in the source, be
-  reviewed, then be integrated separately into each harness that needs them.
+- Ownership correction: the shared preference master is `dot_agents/AGENTS.md`,
+  deployed as the regular file `~/.agents/AGENTS.md`. The initial implementation
+  mistakenly used `dot_codex/AGENTS.md` as the shared master and populated both
+  harness files. Those copies remain separate; future integration is manual.
+- Exact resume point: future shared preference changes begin in
+  `dot_agents/AGENTS.md`; integrate them into individual harness files only when
+  requested. Applying the shared target does not update either harness file.
 
 ## Objective
 
@@ -28,6 +33,17 @@ instructions or documentation. Reusable skills, credentials, logs, caches,
 databases, and other runtime state remain with their existing owners.
 
 ## Current source and live topology
+
+### Shared personal preferences
+
+```text
+Chezmoi source: dot_agents/AGENTS.md
+Live target:    ~/.agents/AGENTS.md
+```
+
+This is the tool-neutral master for manual integration. No symlink, adapter,
+generation step, or loader customization connects it to the harness files.
+The older loader observations below are dated evidence, not fresh runtime tests.
 
 ### Shared skills
 
@@ -87,7 +103,7 @@ Chezmoi source: dot_codex/AGENTS.md
 Live target:    ~/.codex/AGENTS.md
 ```
 
-This source entry is currently untracked. The rest of `~/.codex/` contains
+This source entry is tracked separately from the shared master. The rest of `~/.codex/` contains
 application-owned state such as authentication, logs, caches, SQLite databases,
 sessions, IPC, and browser data. Those are not candidates for synchronization.
 Codex CLI 0.153.0 was verified with `codex debug prompt-input`: with default
@@ -178,10 +194,10 @@ project documentation. The global content must not contain credentials, tokens,
 private keys, or volatile application state.
 
 A 2026-09-05 user decision selected independent, regular harness-owned files.
-Shared personal preferences will be reviewed and copied manually into the
-harnesses that need them. The neutral canonical file, dcode adapter, symlink
-aliases, and loader-patch designs will not be implemented. Project-specific
-content must not be copied into any global harness file.
+Shared personal preferences live in `dot_agents/AGENTS.md` and its regular live
+target `~/.agents/AGENTS.md`. They are reviewed and integrated manually into the
+harnesses that need them. No dcode adapter, symlink aliases, or loader patch is
+planned. Project-specific content stays in project-owned documentation.
 
 ## Historical integration options
 
@@ -244,19 +260,21 @@ until that evidence is reviewed and the update/rollback strategy is explicit.
 
 ## Safe next steps
 
-1. Edit and review personal preferences in `dot_codex/AGENTS.md`.
-2. Apply the Codex target only with explicit approval and manually copy the
-   reviewed preferences into dcode, preserving its managed onboarding block.
+1. Edit and review shared personal preferences in `dot_agents/AGENTS.md`.
+2. Apply only `~/.agents/AGENTS.md` when deploying the shared master. Integrate
+   preferences into Codex or dcode separately when requested, preserving any
+   harness-specific content and dcode's managed onboarding block.
 3. Verify a fresh Codex session and a new dcode thread because existing sessions
    can retain old context snapshots.
 
 ## Rollback
 
-The compact personal-preference source is currently in `dot_codex/AGENTS.md`,
+The compact personal-preference master is in `dot_agents/AGENTS.md`,
 while removed project details are retained in their owning project docs. Both
 live harness paths remain regular files rather than symlinks. Recovery must keep:
 
 - `~/.deepagents/agent/AGENTS.md` as the dcode memory file;
+- `~/.agents/AGENTS.md` as the independent shared preferences file;
 - `~/.codex/AGENTS.md` as the Codex context file;
 - the existing `~/.agents/skills/` contents;
 - all tool-owned files under `~/.codex/` untouched.
@@ -274,4 +292,5 @@ may retain persisted thread state. Do not use broad recursive cleanup.
 - The live `~/.profile` was simplified separately and remains unmanaged.
 - The current source repository contains substantial unrelated uncommitted
   Neovim, tmux, agent, and local-bin work. Preserve it and stage narrowly later.
-- No global `~/.agents/AGENTS.md` has been created yet.
+- The shared preferences file maps from `dot_agents/AGENTS.md` to
+  `~/.agents/AGENTS.md`; inspect scoped chezmoi status for deployment state.
