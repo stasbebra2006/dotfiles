@@ -1,7 +1,5 @@
+# Keep repository-only files in Git instead of deploying them into $HOME.
 README.md
 LICENSE
 AGENTS.md
 docs/
-{{ if not (and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch")) }}
-.local/share/kxmlgui5/
-{{ end }}

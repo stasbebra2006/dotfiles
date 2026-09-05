@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Use ~/.config/nvim-own and matching isolated data, state, and cache directories.
+export NVIM_APPNAME=nvim-own
+# Replace this wrapper with the normal nvim command and forward every argument.
+exec nvim "$@"

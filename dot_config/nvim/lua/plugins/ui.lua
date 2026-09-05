@@ -4,7 +4,8 @@ return {
     opts = {
       lsp = {
         progress = {
-          enabled = false, -- This stops the "pyright" stack from appearing
+          -- Hide Noice's LSP progress view without changing LSP operation.
+          enabled = false,
         },
       },
     },

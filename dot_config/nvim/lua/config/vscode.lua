@@ -1,3 +1,4 @@
+-- VS Code startup path: init.lua skips LazyVim, so this module owns the host integration.
 local vscode = require("vscode")
 local M = {}
 local unpack_fn = table.unpack or unpack
@@ -5,6 +6,7 @@ local function pack(...)
   return { n = select("#", ...), ... }
 end
 
+-- === Transient Escape routing ===
 local escape_capture = {
   depth = 0,
   flash_visible = false,
@@ -44,6 +46,7 @@ end
 set_context("neovim.transientActive", false)
 last_escape_capture = false
 
+-- === Optional native plugin reuse ===
 local flash_path = vim.fn.stdpath("data") .. "/lazy/flash.nvim"
 local has_flash = vim.uv.fs_stat(flash_path) ~= nil
 local flash_char
@@ -148,6 +151,7 @@ if vim.uv.fs_stat(mini_ai_path) then
   })
 end
 
+-- === VS Code commands and editor MRU ===
 local function action(command)
   return function()
     vscode.call(command)
@@ -253,6 +257,7 @@ function M.toggle_last_two_editors()
   end
 end
 
+-- === Host options and autocmds ===
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
@@ -279,6 +284,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   end,
 })
 
+-- === Flash cleanup and Escape handling ===
 local function clear_flash()
   if not has_flash then
     return
@@ -356,6 +362,8 @@ vim.keymap.set({ "n", "x", "o" }, "<esc>", function()
   return "<esc>"
 end, { expr = true, desc = "Escape and clear Flash/search highlights" })
 
+-- === VS Code keymaps ===
+-- --- Search and explorer ---
 vim.keymap.set({ "n", "x" }, "<leader><space>", action("workbench.action.quickOpen"), { desc = "Find Files" })
 vim.keymap.set({ "n", "x" }, "<leader>ff", action("workbench.action.quickOpen"), { desc = "Find Files" })
 vim.keymap.set({ "n", "x" }, "<leader>fg", action("workbench.action.findInFiles"), { desc = "Grep Files" })
@@ -369,6 +377,7 @@ vim.keymap.set("n", "<leader>E", action("workbench.files.action.focusFilesExplor
 vim.keymap.set("n", "<leader>fe", action("workbench.files.action.showActiveFileInExplorer"), { desc = "Explorer Reveal File" })
 vim.keymap.set("n", "<leader>fr", action("workbench.action.openRecent"), { desc = "Recent Projects" })
 
+-- --- Buffers and source control ---
 vim.keymap.set("n", "<leader>bb", M.toggle_last_two_editors, { desc = "Switch Buffer" })
 vim.keymap.set("n", "<leader>bj", action("workbench.action.showAllEditorsByMostRecentlyUsed"), { desc = "Jump Buffer" })
 vim.keymap.set("n", "<leader>bn", action("workbench.action.nextEditor"), { desc = "Next Buffer" })
@@ -383,6 +392,7 @@ vim.keymap.set("n", "<S-l>", action("workbench.action.nextEditor"), { desc = "Ne
 vim.keymap.set("n", "<leader>gg", action("workbench.view.scm"), { desc = "Git" })
 vim.keymap.set("n", "<leader>gs", action("workbench.view.scm"), { desc = "Git Status" })
 
+-- --- Terminal and code navigation ---
 vim.keymap.set("n", "<leader>tt", action("workbench.action.terminal.toggleTerminal"), { desc = "Terminal" })
 vim.keymap.set("n", "<leader>tn", action("workbench.action.terminal.new"), { desc = "New Terminal" })
 vim.keymap.set("n", "<leader>tf", action("workbench.action.terminal.focus"), { desc = "Focus Terminal" })
@@ -395,6 +405,7 @@ vim.keymap.set("n", "gD", action("editor.action.peekDefinition"), { desc = "Peek
 vim.keymap.set("n", "gr", action("editor.action.goToReferences"), { desc = "References" })
 vim.keymap.set("n", "K", action("editor.action.showHover"), { desc = "Hover" })
 
+-- --- Diagnostics and windows ---
 vim.keymap.set("n", "]d", action("editor.action.marker.next"), { desc = "Next Diagnostic" })
 vim.keymap.set("n", "[d", action("editor.action.marker.prev"), { desc = "Previous Diagnostic" })
 vim.keymap.set("n", "<leader>xx", action("workbench.actions.view.problems"), { desc = "Diagnostics" })
@@ -407,6 +418,7 @@ vim.keymap.set("n", "<leader>wl", action("workbench.action.navigateRight"), { de
 vim.keymap.set("n", "<leader>wv", action("workbench.action.splitEditorRight"), { desc = "Split Right" })
 vim.keymap.set("n", "<leader>ws", action("workbench.action.splitEditorDown"), { desc = "Split Down" })
 
+-- --- Utilities and Flash ---
 vim.keymap.set("n", "<leader>cp", action("copyFilePath"), { desc = "Copy Absolute Path" })
 vim.keymap.set("n", "<leader>cn", action("copyRelativeFilePath"), { desc = "Copy Relative Path" })
 vim.keymap.set("n", "<leader>uz", action("workbench.action.toggleZenMode"), { desc = "Zen Mode" })

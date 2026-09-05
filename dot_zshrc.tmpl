@@ -1,42 +1,44 @@
-export PATH="$HOME/.npm-global/bin:$PATH"
-export PATH="/usr/bin:$PATH"
-# Path to your Oh My Zsh installation.
+# === Shared configuration ===
+
+# --- Oh My Zsh ---
+# Configure the installation path, prompt theme, and plugins before loading it.
 export ZSH="$HOME/.oh-my-zsh"
-
-# Theme
 ZSH_THEME="robbyrussell"
-
-# Plugins
 plugins=(git)
+# Source the loader in this shell so its changes persist.
+source "$ZSH/oh-my-zsh.sh"
 
-source $ZSH/oh-my-zsh.sh
-
-# Prefer exact-case completion before falling back to case-insensitive matches.
+# --- Completion ---
+# Try exact completion first, then case-insensitive and broader partial matches.
 zstyle ':completion:*' matcher-list '' \
   'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' \
   'r:|=*' \
   'l:|=* r:|=*'
 
-# PATH
-export PATH="$HOME/.local/bin:$PATH"
-
-{{ if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch") -}}
-# === Arch Linux Only ===
-alias mainconfig="nvim ~/.config/hypr/hyprland.conf"
-alias update="sudo pacman -Syu --noconfirm && paru -Sua --noconfirm"
-alias zz="systemctl suspend"
-alias suspend="systemctl suspend"
-{{ else if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") -}}
-# === Ubuntu Server Only ===
-alias update="sudo apt update && sudo apt upgrade"
-{{ else if eq .chezmoi.os "darwin" -}}
-# === macOS Only ===
-eval "$(/opt/homebrew/bin/brew shellenv)"
-alias update="brew update && brew upgrade --no-ask && brew cleanup"
-{{ end -}}
-
-# === Shared Tools ===
-[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
-
+# --- Editor ---
+# Use Neovim for general command-line editing and privileged sudoedit sessions.
 export EDITOR="nvim"
 export SUDO_EDITOR="nvim"
+
+# === OS-specific configuration ===
+# Chezmoi renders only the matching branch.
+
+{{ if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch") -}}
+# --- Arch Linux ---
+# Prepend the verified user npm bin directory only when needed.
+if [[ -d "$HOME/.npm-global/bin" && ":$PATH:" != *":$HOME/.npm-global/bin:"* ]]; then
+  export PATH="$HOME/.npm-global/bin:$PATH"
+fi
+# Update official packages, then AUR packages, without confirmation prompts.
+alias update="sudo pacman -Syu --noconfirm && paru -Sua --noconfirm"
+{{ else if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") -}}
+# --- Ubuntu Server ---
+# Refresh apt metadata, then install available upgrades.
+alias update="sudo apt update && sudo apt upgrade"
+{{ else if eq .chezmoi.os "darwin" -}}
+# --- macOS ---
+# Import Homebrew's generated environment into this shell.
+eval "$(/opt/homebrew/bin/brew shellenv)"
+# Update metadata and packages, then remove stale Homebrew files.
+alias update="brew update && brew upgrade --no-ask && brew cleanup"
+{{ end -}}
