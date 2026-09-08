@@ -15,6 +15,13 @@ zstyle ':completion:*' matcher-list '' \
   'r:|=*' \
   'l:|=* r:|=*'
 
+# --- User binaries ---
+# Prepend ~/.local/bin directly so user executables (such as nvim-own) are
+# indexed cleanly for zsh completion without paths containing '..'.
+if [[ -d "$HOME/.local/bin" && ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+
 # --- Editor ---
 # Use Neovim for general command-line editing and privileged sudoedit sessions.
 export EDITOR="nvim"

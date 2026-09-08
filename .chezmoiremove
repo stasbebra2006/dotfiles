@@ -1,0 +1,8 @@
+# Retired TPM and Catppuccin copies; current tmux configuration uses no plugins.
+.tmux/plugins/tpm
+.tmux/plugins/tmux
+.config/tmux/plugins/tpm
+.config/tmux/plugins/tmux
+
+# Retired Konsole toolbar customization.
+.local/share/kxmlgui5/konsole/konsoleui.rc
