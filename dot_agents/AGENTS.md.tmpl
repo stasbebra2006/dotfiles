@@ -1,0 +1,14 @@
+# Agent Guidelines
+
+When launching user terminals or tmux from agent tools, remove agent-injected environment overrides such as `NO_COLOR` from the child environment and verify inheritance; a new tmux server retains them for later sessions.
+
+{{- if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch") }}
+
+When launching GUI applications (e.g. Xournal++), run them detached from the agent process tree using `systemd-run --user <app> "<file>"`.
+
+## Xournal++ Notes
+- **Location**: Notes repository is at `~/stasbebra2006/Xournal/` (academic subjects in `subjects/<SUBJECT>/`, e.g. `PKM` for BI-PKM).
+- **New Files**: Always create the `.xopp` file before launching (Xournal++ errors on non-existent paths).
+  - Inspect current template settings from `~/.config/xournalpp/settings.xml` under property `pageTemplate` (contains `size=WIDTHxHEIGHT`, `backgroundType`, and `backgroundColor`). Alternatively, inspect `<page>` and `<background>` from the most recent `.xopp` in the subject folder.
+  - Write a valid gzip-compressed XML document: `<xournal creator="xournalpp ..."><page width="WIDTH" height="HEIGHT"><background type="solid" color="COLORff" style="TYPE"/><layer/></page></xournal>`.
+{{- end }}
