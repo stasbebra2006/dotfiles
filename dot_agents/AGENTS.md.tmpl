@@ -6,6 +6,8 @@ When launching user terminals or tmux from agent tools, remove agent-injected en
 
 When launching GUI applications (e.g. Xournal++), run them detached from the agent process tree using `systemd-run --user <app> "<file>"`.
 
+When asked to open a directory in LazyVim in another Kitty, launch a separate Kitty with `systemd-run --user`, start a new project-named tmux session inside it, and run `nvim .` from that directory; do not create a window in the current tmux session, and do not use the separate `nvim-own` profile.
+
 ## Xournal++ Notes
 - **Location**: Notes repository is at `~/stasbebra2006/Xournal/` (academic subjects in `subjects/<SUBJECT>/`, e.g. `PKM` for BI-PKM).
 - **New Files**: Always create the `.xopp` file before launching (Xournal++ errors on non-existent paths).
