@@ -14,6 +14,15 @@ not import its configuration framework.
   only when doing so will not discard unsaved work.
 - Keep authored changes in chezmoi source. Applying, committing, and pushing are
   separate actions, performed when requested.
+- When a real need exposes a topic, consult the relevant notes and current
+  sources, compare meaningful options and tradeoffs, recommend one, then choose
+  the implementation together before editing.
+
+## Working references
+
+- [Upstream notes](nvim-own-notes.md): reusable Kickstart and LazyVim findings.
+- [Directions](nvim-own-roadmap.md): possible areas, without commitment or order.
+- [Decisions](nvim-own-decisions.md): accepted choices and their rationale.
 
 ## Profile and files
 
@@ -65,11 +74,9 @@ returns one specification table, and the index collects those tables for
 
 ## Open decisions
 
-1. **Lockfile:** decide whether to track `lazy-lock.json` for reproducible plugins.
-2. **Next feature:** choose one layer to learn and add. Earlier candidates were
-   Tree-sitter, completion (Blink), command/message UI (Noice), an explorer,
-   Bufferline, and possibly a Snacks dashboard. These are ideas, not commitments.
-3. **Disk refresh:** revisit a `:checktime` autocmd after the lifecycle investigation;
-   it was deliberately deferred in this profile.
+- Decide whether to track `lazy-lock.json` for reproducible plugin revisions.
+- Revisit a `:checktime` autocmd only when disk-refresh behavior becomes relevant;
+  it was deliberately deferred after the lifecycle investigation.
 
-The core choice is complete. Resume with one explained feature at a time.
+Possible future areas live in the [directions](nvim-own-roadmap.md). They are
+context to use when a need appears, not a preselected next feature.
