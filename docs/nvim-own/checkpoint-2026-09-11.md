@@ -313,3 +313,29 @@ directly.
 - No commit or push was requested; none was performed.
 - Do not reset, discard, stage wholesale, or overwrite existing changes.
 - Apply, commit, and push remain separate authorization boundaries.
+
+## Post-wrap publication — 2026-09-11 17:53:31 CEST
+
+After the initial wrap, the user explicitly requested apply, commit, and push.
+The earlier statements that the registry comments were unapplied and that no
+commit or push was requested describe the initial wrap state and are superseded
+by this section.
+
+- Applied the reviewed source to `~/.config/nvim-own/`,
+  `~/.config/nvim-kickstart/`, and `~/.local/bin/nvim-kickstart`.
+- Scoped chezmoi status and diff were empty after apply.
+- `nvim-own` loaded `server_names = { "pyright" }` from the live registry.
+- `nvim-kickstart` completed a headless startup smoke test.
+- The obsolete live `lua/plugins/mason.lua` was absent.
+- Scanned the intended files for credential and private-key patterns; none were
+  found.
+- Staged 34 exact nvim-related paths while leaving
+  `dot_agents/AGENTS.md.tmpl` unstaged as unrelated work.
+- Created and pushed commit
+  `6ea51259faa905350579c251be6d3c0453bea1c5`
+  (`feat(nvim): expand standalone profile and references`) to `origin/main`.
+- Local `HEAD` and `origin/main` matched that commit after the push.
+
+This timestamped section is the follow-up publication record. The live
+`lazy-lock.json` remains unmanaged, and the unrelated
+`dot_agents/AGENTS.md.tmpl` modification still requires preservation.
