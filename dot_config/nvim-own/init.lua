@@ -7,9 +7,6 @@ require("config.options")
 require("config.diagnostics")
 require("config.keymaps")
 
--- === Plugin system ===
+-- === Plugins and language tooling ===
+-- The eager LSP plugin spec connects language declarations after its dependencies load.
 require("config.lazy")
-
--- === Language tooling ===
--- Mason has initialized first, so its isolated bin directory is already on PATH.
-require("config.lsp")

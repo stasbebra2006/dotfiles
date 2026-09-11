@@ -1,25 +1,37 @@
 # nvim-own: upstream notes
 
-[Project guide](nvim-own.md) · [Directions](nvim-own-roadmap.md) ·
-[Decisions](nvim-own-decisions.md)
+[Project guide](README.md) · [Directions](roadmap.md) ·
+[Decisions](decisions.md)
 
-These notes preserve useful upstream findings until a related need appears.
-They are evidence to revisit, not an implementation plan or a choice between
-only two configurations.
+These findings refer to the recorded upstream revisions below unless dated
+otherwise. Preserve them as evidence to revisit, not as an implementation plan
+or a forced choice between two configurations.
 
-## How to use the references
+## Local comparison set
 
-- Check native Neovim first when it may already provide the behavior.
-- Use Kickstart for a readable, complete example of the mechanism.
-- Use LazyVim for integration, lifecycle, and UX edge cases.
-- Use current plugin documentation as the authority for plugin APIs.
-- Recheck the relevant source before implementing; snapshots age.
+| Role | Path |
+| --- | --- |
+| Authored `nvim-own` | `~/.local/share/chezmoi/dot_config/nvim-own/` |
+| Authored normal LazyVim config | `~/.local/share/chezmoi/dot_config/nvim/` |
+| Deployed normal config | `~/.config/nvim/` |
+| Installed LazyVim framework | `~/.local/share/nvim/lazy/LazyVim/` |
+| Authored Kickstart profile | `~/.local/share/chezmoi/dot_config/nvim-kickstart/` |
+| Deployed Kickstart profile | `~/.config/nvim-kickstart/` |
+
+During ordinary work, use local `:help` and the three authored profiles. The
+normal config's lockfile identifies the LazyVim revision whose disposable
+installed checkout supplies inherited behavior. Deployed directories are
+runtime state, not editing surfaces. The Kickstart profile is a managed source
+snapshot, never a Git repository or runtime dependency. Refresh upstream code
+only deliberately, then replace the reviewed snapshot and record its full
+revision.
 
 ## Reference roles
 
 **Kickstart.nvim** optimizes for teaching: explicit sections and execution
 order, public APIs, `:help` pointers, and complete examples before abstraction.
-Its current use of `vim.pack` is not a reason to replace our lazy.nvim setup.
+The recorded Kickstart snapshot uses `vim.pack`; that is not a reason to replace
+our lazy.nvim setup.
 
 **LazyVim** optimizes for an integrated editor: coherent namespaces,
 lazy-loading and spec composition, buffer lifecycle, capability checks,
@@ -52,8 +64,8 @@ Features overlap. The useful difference is emphasis, not ownership.
 
 ### Plugin lifecycle
 
-- Kickstart currently makes installation and build hooks visible with
-  `vim.pack.add`, `PackChanged`, and direct `setup()` calls.
+- The recorded Kickstart snapshot makes installation and build hooks visible
+  with `vim.pack.add`, `PackChanged`, and direct `setup()` calls.
 - LazyVim uses lazy.nvim `event`, `cmd`, `keys`, and `ft` triggers, dependencies,
   composed specs, and guarded integration.
 - Keep our explicit lazy.nvim specs. Add lazy loading only when its ownership and
@@ -65,19 +77,19 @@ Features overlap. The useful difference is emphasis, not ownership.
   Mason installation helpers, and capability-dependent behavior.
 - LazyVim demonstrates per-server composition, buffer-local mappings, root
   handling, capability integration, and picker/formatting interactions.
-- Our baseline is direct Pyright plus Mason. Before extending it, distinguish
-  Neovim defaults, client behavior, server settings, executable installation,
-  workspace root, and Python interpreter selection.
+- When extending `nvim-own`, distinguish Neovim defaults, client behavior,
+  server settings, executable installation, workspace root, and Python
+  interpreter selection.
 
 ### Tree-sitter
 
-- Kickstart's inspected version uses the newer nvim-treesitter `main` API,
-  parser installation, `FileType` attachment, highlighting, and optional
-  indentation.
+- The recorded Kickstart revision uses the newer API from nvim-treesitter's
+  `main` branch for parser installation, `FileType` attachment, highlighting,
+  and optional indentation.
 - LazyVim treats Tree-sitter as an integrated core layer with language and
   feature extensions.
 - Recheck current APIs and version requirements. Evaluate parser ownership,
-  highlighting, indentation, text objects, and failure fallback separately.
+  highlighting, indentation, text objects, and fallback behavior separately.
 
 ### Search, pickers, and explorers
 
@@ -108,18 +120,24 @@ Features overlap. The useful difference is emphasis, not ownership.
 
 ### Reproducibility
 
-- Kickstart recommends tracking its `nvim-pack-lock.json` even though its own
-  template ignores it for upstream maintenance.
-- Our live `lazy-lock.json`, Mason packages, and selected nightly binary are
-  separate version/install concerns. None is automatically reproduced merely
-  because the Lua configuration is managed.
+- The recorded Kickstart snapshot recommends tracking `nvim-pack-lock.json`,
+  though its upstream template ignores that file for repository maintenance.
+- The normal LazyVim-based profile has an authored `lazy-lock.json`; the
+  `nvim-own` live lockfile remains unmanaged.
+- Plugin lockfiles, Mason package versions, and the selected Neovim binary are
+  separate reproducibility concerns.
 
-## Source snapshots
+## Recorded reference revisions
 
-- Kickstart.nvim `f7b845d` (2026-09-06):
-  [repository](https://github.com/nvim-lua/kickstart.nvim),
-  [`init.lua`](https://github.com/nvim-lua/kickstart.nvim/blob/f7b845d8b6df409b0392ca117d092d5dffd2b538/init.lua).
-- LazyVim 16.0.1, `9997009` (2026-09-08):
-  [repository](https://github.com/LazyVim/LazyVim),
-  [keymaps](https://github.com/LazyVim/LazyVim/blob/999700997f72227187d49d8b92667183dc7fc809/lua/lazyvim/config/keymaps.lua),
-  [plugin groups](https://github.com/LazyVim/LazyVim/blob/999700997f72227187d49d8b92667183dc7fc809/lua/lazyvim/plugins/editor.lua).
+- LazyVim:
+  `c10948c50b18fae7f256433afdef09e432410480`; the authored `lazy-lock.json`
+  and clean installed checkout matched when verified on 2026-09-09.
+- Kickstart.nvim:
+  `748f67f49dd9fed47686d1d15e8566d2cba8ed35`; the managed profile was copied
+  from a clean checkout of
+  [nvim-lua/kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim) on
+  2026-09-09.
+
+A recorded revision remains valid historical evidence; do not call it current
+without an explicit fetch. Recheck only the relevant reference when a decision
+depends on newer behavior.

@@ -6,3 +6,6 @@
 
 # Retired Konsole toolbar customization.
 .local/share/kxmlgui5/konsole/konsoleui.rc
+
+# The LSP plugin container supersedes the Mason-only setup module.
+.config/nvim-own/lua/plugins/mason.lua

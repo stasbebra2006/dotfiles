@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Use ~/.config/nvim-kickstart and matching isolated data, state, and cache directories.
+export NVIM_APPNAME=nvim-kickstart
+# Run the system Neovim and forward every argument.
+exec nvim "$@"
