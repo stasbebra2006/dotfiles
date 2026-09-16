@@ -3,3 +3,14 @@ README.md
 LICENSE
 AGENTS.md
 docs/
+
+# Brightness recovery depends on Linux KDE services.
+{{ if ne .chezmoi.os "linux" }}
+.agents/skills/fix-brightness
+{{ end }}
+
+# macOS application support
+{{ if ne .chezmoi.os "darwin" }}
+Library
+Library/**
+{{ end }}

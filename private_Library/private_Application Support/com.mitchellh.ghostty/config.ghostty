@@ -1,0 +1,4 @@
+theme = Monokai Remastered
+
+# Forward Command+S as Ctrl+S for tmux prefix
+keybind = super+s=text:\x13
