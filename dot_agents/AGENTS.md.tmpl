@@ -2,6 +2,8 @@
 
 When launching user terminals or tmux from agent tools, remove agent-injected environment overrides such as `NO_COLOR` from the child environment and verify inheritance; a new tmux server retains them for later sessions.
 
+When asked to copy text to the user's clipboard from an agent session inside tmux, use `tmux set-buffer -w 'text'` (with proper shell quoting), rather than printing OSC 52 escape sequences to captured tool output. This method was verified to reach the macOS clipboard through Ghostty, a local tmux, SSH, and a remote tmux. It relies on OSC 52 clipboard forwarding being configured through the terminal chain; a successful command alone does not prove clipboard delivery on a new setup. Remote `wl-copy` does not target the Mac's clipboard. Copying does not execute the text.
+
 {{- if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch") }}
 
 When launching GUI applications (e.g. Xournal++), run them detached from the agent process tree using `systemd-run --user <app> "<file>"`.
