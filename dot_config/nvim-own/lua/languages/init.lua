@@ -3,12 +3,22 @@
 --
 -- This explicit manifest controls which languages are active. Merely adding a
 -- file under lua/languages/ does not opt it into the configuration.
+-- Our own format, not a plugin API. With only Python, the list has this shape:
+-- containers = {
+--   [1] = { name = "python", servers = { pyright = {} } },
+-- }
+-- ipairs(containers) yields the numeric index and its language table.
 local containers = {
   require("languages.python"),
 }
 
 -- Keep configurations keyed by server name for config.lsp, and keep a separate
 -- name array because mason-lspconfig's ensure_installed option expects one.
+-- After the loops below, the Python-only registry has this shape:
+-- registry = {
+--   servers = { pyright = {} },
+--   server_names = { "pyright" },
+-- }
 local registry = {
   servers = {},
   server_names = {},
@@ -61,7 +71,7 @@ for _, container in ipairs(containers) do
     -- consumers such as Mason that need an array rather than a keyed table.
     server_owners[server_name] = container.name
     registry.servers[server_name] = server_config
-    registry.server_names[#registry.server_names + 1] = server_name
+    table.insert(registry.server_names, server_name)
   end
 end
 
