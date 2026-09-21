@@ -40,16 +40,16 @@ export SUDO_EDITOR="nvim"
 if [[ -d "$HOME/.npm-global/bin" && ":$PATH:" != *":$HOME/.npm-global/bin:"* ]]; then
   export PATH="$HOME/.npm-global/bin:$PATH"
 fi
-# Update official packages, then AUR packages, without confirmation prompts.
-alias update="sudo pacman -Syu --noconfirm && paru -Sua --noconfirm"
+# Update official and AUR packages without prompts, then Oh My Pi.
+alias update="sudo pacman -Syu --noconfirm && paru -Sua --noconfirm && omp update"
 {{ else if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") -}}
 # --- Ubuntu Server ---
-# Refresh apt metadata, then install available upgrades.
-alias update="sudo apt update && sudo apt upgrade"
+# Refresh apt metadata and upgrade packages, then update Oh My Pi.
+alias update="sudo apt update && sudo apt upgrade && omp update"
 {{ else if eq .chezmoi.os "darwin" -}}
 # --- macOS ---
 # Import Homebrew's generated environment into this shell.
 eval "$(/opt/homebrew/bin/brew shellenv)"
-# Update metadata and packages, then remove stale Homebrew files.
-alias update="brew update && brew upgrade --no-ask && brew cleanup"
+# Update and clean up Homebrew packages, then update Oh My Pi.
+alias update="brew update && brew upgrade --no-ask && brew cleanup && omp update"
 {{ end -}}
