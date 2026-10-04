@@ -14,16 +14,15 @@ brings it into the conversation.
 - external-file refresh, revisiting `:checktime` only when the workflow needs it;
 - source-managing `nvim-own` plugin revisions and deciding Mason tool
   reproducibility separately;
-- syntax parsing and highlighting;
-- navigation across files, buffers, help, and project text;
-- Python environment selection, formatting, linting, and richer LSP behavior;
+- syntax parsing and highlighting for additional languages;
+- help and LSP-result navigation;
+- Python environment selection and richer LSP behavior;
 - Git change visibility and hunk actions.
 
 ## Later if needed
 
-Possible later areas include a dedicated explorer, buffer presentation,
-statusline, messages and notifications, sessions, debugging, and other UI
-layers.
+Possible later areas include a statusline, messages and notifications, debugging,
+and other UI layers.
 
 Evaluate cross-cutting concerns such as lazy-loading, project root versus
 working directory, lifecycle, portability, and fallback behavior with the

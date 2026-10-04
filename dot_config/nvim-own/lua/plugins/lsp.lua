@@ -5,6 +5,8 @@ return {
   dependencies = {
     "mason-org/mason.nvim",
     "mason-org/mason-lspconfig.nvim",
+    -- Blink registers completion capabilities before the connector enables servers.
+    "saghen/blink.cmp",
   },
   config = function()
     local languages = require("languages")

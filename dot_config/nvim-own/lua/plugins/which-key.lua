@@ -5,6 +5,12 @@ return {
     -- Keep setup visible for learning; helix is the chosen presentation preset.
     require("which-key").setup({
       preset = "helix",
+      spec = {
+        { "<leader>f", group = "find" },
+        { "<leader>b", group = "buffers" },
+        { "<leader>q", group = "sessions" },
+        { "<leader>c", group = "code" },
+      },
     })
   end,
 }

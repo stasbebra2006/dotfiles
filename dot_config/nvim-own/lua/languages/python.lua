@@ -3,8 +3,17 @@ return {
   name = "python",
 
   servers = {
-    -- The empty override selects nvim-lspconfig's maintained Pyright recipe.
-    -- Add settings here only when Python work exposes a concrete need.
-    pyright = {},
+    -- Pyright keeps type analysis, completion, and navigation; Ruff owns imports.
+    pyright = {
+      settings = {
+        pyright = { disableOrganizeImports = true },
+      },
+    },
+    ruff = {
+      on_attach = function(client)
+        -- Prefer Pyright's documentation when both servers support hover.
+        client.server_capabilities.hoverProvider = false
+      end,
+    },
   },
 }
