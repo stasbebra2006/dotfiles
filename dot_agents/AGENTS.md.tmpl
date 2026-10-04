@@ -6,6 +6,11 @@ When asked to copy text to the user's clipboard from an agent session inside tmu
 
 Previous Oh My Pi chats are locally preserved. When they are relevant, search prompts in `~/.omp/agent/history.db` and read full transcripts under `~/.omp/agent/sessions/`; `history://` lists harness-registered agents, not the interactive-session archive.
 
+{{- if eq .chezmoi.os "darwin" }}
+
+For the user's OrbStack/Linux coursework setup and terminal-based tutoring preferences, read `~/.agents/orbstack-setup.md`. Before answering their shell questions, inspect the current user terminal pane; explain the actual situation briefly without changing their input.
+{{- end }}
+
 {{- if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "arch") }}
 
 When launching GUI applications (e.g. Xournal++), run them detached from the agent process tree using `systemd-run --user <app> "<file>"`.
