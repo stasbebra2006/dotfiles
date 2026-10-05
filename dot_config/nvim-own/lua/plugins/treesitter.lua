@@ -1,3 +1,5 @@
+local parsers = { "python", "c", "cpp" }
+
 -- Use the maintained API and freeze the parser/query revision with the plugin.
 return {
   "nvim-treesitter/nvim-treesitter",
@@ -7,18 +9,18 @@ return {
   build = function()
     -- Install on a fresh profile and refresh the matching grammar on plugin changes.
     assert(
-      require("nvim-treesitter").install({ "python" }, { force = true }):wait(300000),
-      "Python Tree-sitter parser installation failed"
+      require("nvim-treesitter").install(parsers, { force = true }):wait(300000),
+      "Tree-sitter parser installation failed"
     )
   end,
   config = function()
     vim.api.nvim_create_autocmd("FileType", {
       group = vim.api.nvim_create_augroup("NvimOwnTreesitter", { clear = true }),
-      pattern = "python",
+      pattern = parsers,
       callback = function(event)
         vim.treesitter.start(event.buf)
       end,
-      desc = "Enable Python Tree-sitter highlighting",
+      desc = "Enable Python, C, and C++ Tree-sitter highlighting",
     })
   end,
 }

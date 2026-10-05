@@ -1,4 +1,4 @@
--- Enable only the navigation features we use, not the entire Snacks collection.
+-- Enable only the navigation and image features used by this profile.
 return {
   "folke/snacks.nvim",
   version = "v2.31.0",
@@ -11,7 +11,28 @@ return {
     require("snacks").setup({
       -- The default explorer is a persistent left sidebar and replaces netrw.
       explorer = { enabled = true },
-      picker = { enabled = true },
+      -- Molten supplies plot placements; don't scan documents for extra images.
+      image = {
+        enabled = true,
+        doc = { enabled = false, max_width = 100, max_height = 24 },
+      },
+      picker = {
+        enabled = true,
+        sources = {
+          explorer = {
+            win = {
+              -- In normal mode, inherit the global Ctrl-j/k window mappings.
+              list = { keys = { ["<c-j>"] = false, ["<c-k>"] = false } },
+              input = {
+                keys = {
+                  ["<c-j>"] = { "list_down", mode = "i" },
+                  ["<c-k>"] = { "list_up", mode = "i" },
+                },
+              },
+            },
+          },
+        },
+      },
       dashboard = {
         enabled = true,
         preset = {
