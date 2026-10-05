@@ -11,6 +11,4 @@ return {
   require("plugins.treesitter"),
   require("plugins.blink"),
   require("plugins.lsp"),
-  require("plugins.jupytext"),
-  require("plugins.molten"),
 }

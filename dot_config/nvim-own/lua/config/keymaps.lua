@@ -67,33 +67,3 @@ vim.keymap.set("n", "<leader>cf", function()
     end,
   })
 end, { desc = "Format buffer" })
-
--- Notebook controls are local to Python buffers; other languages keep their keys.
-vim.api.nvim_create_autocmd("FileType", {
-  group = vim.api.nvim_create_augroup("nvim-own-notebook-keymaps", { clear = true }),
-  pattern = "python",
-  callback = function(event)
-    local function map(mode, lhs, rhs, desc)
-      vim.keymap.set(mode, lhs, rhs, { buffer = event.buf, silent = true, desc = desc })
-    end
-
-    map("n", "]j", function()
-      vim.fn.search("^# %%", "W")
-    end, "Next notebook cell")
-    map("n", "[j", function()
-      vim.fn.search("^# %%", "bW")
-    end, "Previous notebook cell")
-    map("n", "<leader>ji", "<cmd>MoltenInit<cr>", "Choose notebook kernel")
-    map("n", "<leader>jr", function()
-      require("config.notebooks").run_cell()
-    end, "Run current notebook cell")
-    map("x", "<leader>jr", ":<C-u>MoltenEvaluateVisual<cr>gv", "Run selected Python")
-    map("n", "<leader>jl", "<cmd>MoltenEvaluateLine<cr>", "Run current line")
-    map("n", "<leader>jo", "<cmd>noautocmd MoltenEnterOutput<cr>", "Focus cell output")
-    map("n", "<leader>jh", "<cmd>MoltenHideOutput<cr>", "Hide cell output")
-    map("n", "<leader>jp", "<cmd>MoltenImportOutput<cr>", "Import saved notebook outputs")
-    map("n", "<leader>jx", "<cmd>MoltenInterrupt<cr>", "Interrupt notebook kernel")
-    map("n", "<leader>jk", "<cmd>MoltenRestart<cr>", "Restart kernel (keep outputs)")
-    map("n", "<leader>jI", "<cmd>MoltenInfo<cr>", "Notebook kernel information")
-  end,
-})

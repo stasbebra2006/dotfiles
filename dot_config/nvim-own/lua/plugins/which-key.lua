@@ -10,7 +10,6 @@ return {
         { "<leader>b", group = "buffers" },
         { "<leader>q", group = "sessions" },
         { "<leader>c", group = "code" },
-        { "<leader>j", group = "notebook" },
         { "<leader>u", group = "ui" },
       },
     })

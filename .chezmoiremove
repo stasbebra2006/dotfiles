@@ -9,3 +9,8 @@
 
 # The LSP plugin container supersedes the Mason-only setup module.
 .config/nvim-own/lua/plugins/mason.lua
+
+# Retired Molten/Jupytext notebook experiment; keep historical notes in docs.
+.config/nvim-own/lua/config/notebooks.lua
+.config/nvim-own/lua/plugins/jupytext.lua
+.config/nvim-own/lua/plugins/molten.lua

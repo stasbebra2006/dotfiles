@@ -1,8 +1,82 @@
-# nvim-own checkpoint — 2026-10-05
+# nvim-own notebook experiment — retired (2026-10-05)
+
+## Retirement decision and current state
+
+On 2026-10-05 the user rejected the complexity of the notebook integration and
+requested its full rollback, with comprehensive history retained. The experiment
+is removed from the active configuration, not waiting for an export fix.
+Do not resume it, install a replacement stack, or restore its bindings without a
+new request.
+
+### Completed rollback on the Linux machine
+
+- Removed the Molten and Jupytext plugin declarations and registrations.
+- Removed the early `python3_host_prog` override, current-cell helper, Python-only
+  notebook autocmd/keymaps, and which-key's `Space j` group.
+- Removed Snacks' notebook image settings, keeping explorer/picker/dashboard.
+- Removed the notebook-only tmux `allow-passthrough on` setting and explicitly
+  restored `allow-passthrough off` in the existing server. The F12 keyboard/mouse
+  passthrough configuration and OSC 52 clipboard forwarding were preserved.
+- Deleted the three notebook-only source modules. Added their deployed paths to
+  `.chezmoiremove`, so applying on another machine removes stale live copies
+  instead of merely ceasing to track them.
+- Updated the active README to describe the experiment as removed; the historical
+  implementation and evidence below remain available.
+- Preserved all unrelated UI/navigation/session features, Python and C/C++ tooling,
+  the normal LazyVim profile, and every coursework notebook, CSV, and image.
+
+Before removal, an actual headless Neovim Python buffer had the kernel/run-cell
+bindings and one notebook FileType autocmd. After applying the rollback, a fresh
+headless instance confirmed all notebook keys/autocmds and the three live files
+absent, and loaded the plugin declarations without Molten/Jupytext. Native theme
+and global-statusline options, actual Ctrl-h movement between splits, the manual
+formatting mapping, and the Pyright/Ruff/clangd declarations remained intact.
+Scoped chezmoi status/diff were empty. These checks do not claim fresh LSP runtime
+attachment or complete plugin startup: this Linux host lacks the wrapper's
+`~/.local/opt/nvim-unstable` binary, so the smoke used system Neovim with the native
+profile modules and plugin declarations.
+
+No notebook runtime data/state/cache directory, notebook host, Jupytext uv tool or
+launcher, user `bi-ml1` kernelspec, or generated profile lockfile was found on this
+Linux machine. There was therefore no local package/host/kernel data to uninstall.
+The Mac installations listed below are a separate historical machine state.
+No SSH hosts are configured for reaching that Mac; its external-package cleanup
+has not been performed or verified from this session. See the checklist below.
+The user subsequently authorized committing and pushing this rollback. The commit
+containing this retirement record is the notebook-only removal, not the earlier
+implementation checkpoint. Live apply and Mac runtime cleanup remain separate
+actions. Check `origin/main` for remote publication; a local copy of this document
+alone does not establish that a push succeeded.
+
+### Lessons retained
+
+- Cell execution is not a notebook round trip. A usable result-saving workflow
+  needs export and reopen proof, including pre-existing error outputs and plots.
+- The editor's Python host, Jupyter kernel, and Pyright interpreter are separate.
+  Synchronizing Lua files does not provision any of those external runtimes.
+- Hydrogen preserved executable `%magics`; ordinary percent conversion commented
+  them and broke correspondence with some saved outputs.
+- Start in the notebook asset directory. A selected kernel did not automatically
+  adopt the opened notebook's directory.
+- Pandas truncation happens before output reaches the editor. Scrolling a window
+  cannot recover rows or columns omitted by the producer.
+- Three-line previews plus a focusable unwrapped output buffer handled large text
+  tables. A permanent code-left/output-right sidebar was never implemented.
+- An image placement and terminal placeholders are not visual proof of rendered
+  pixels. The failed macOS capture left that graphics check incomplete.
+- The suspected upstream export defect remains an inference, not a verified root
+  cause or a fixed bug. No fake save, suppressed exception, or discarded error
+  outputs were accepted as a workaround.
+
+## Original implementation checkpoint — historical
+
+The following records the Mac experiment before retirement. Its installation
+inventory, successful probes, and prior publication authorization describe that
+earlier session, not current Linux dependencies or permission to publish rollback.
 
 Checkpoint started at 2026-10-05T11:44:48+02:00 (CEST, Europe/Prague).
 The user explicitly requested wrapping, durable progress/removal notes, a commit,
-and a push. This is a paused experiment, not a claim of notebook completion.
+and a push. At that checkpoint the experiment was paused, not completed.
 
 ## Objective and conversational position
 
@@ -56,7 +130,7 @@ These previously uncommitted profile changes are included in this checkpoint:
 See README for the current UI/C/C++ ownership and keymaps. Do not revert those
 features merely to remove the notebook experiment below.
 
-## Notebook implementation and installed state
+## Historical notebook implementation and installed state (Mac)
 
 Source repository: `/Users/stasbebra2006/.local/share/chezmoi`.
 Live profile: `~/.config/nvim-own`; data: `~/.local/share/nvim-own`.
@@ -65,7 +139,7 @@ separate `~/.local/opt/nvim-unstable` core. No normal LazyVim files were changed
 At wrap, the actual core reported `v0.13.0-dev-1596+g28ff47b8a4` with LuaJIT,
 on this arm64 macOS workstation.
 
-Notebook-specific authored files:
+Historical notebook-specific authored files, now removed:
 
 | File | Purpose |
 | --- | --- |
@@ -73,7 +147,7 @@ Notebook-specific authored files:
 | `dot_config/nvim-own/lua/plugins/molten.lua` | Upstream Molten pin `bedea63819c618e007e7c40059fc6e72d598c8df`; Snacks provider, output options, and saved-output import after explicit kernel selection. |
 | `dot_config/nvim-own/lua/config/notebooks.lua` | Locate the current `# %%` cell, reject Markdown/raw text cells, and execute its one-based line range with Molten. |
 
-Notebook additions to existing files:
+Historical notebook additions to existing files, now reverted:
 
 - `dot_config/nvim-own/init.lua`: `g:python3_host_prog` points to the isolated host
   before lazy.nvim can build remote-plugin registrations.
@@ -86,7 +160,7 @@ Notebook additions to existing files:
   The existing keyboard/F12 passthrough configuration was not changed.
 - `docs/nvim-own/README.md`: experimental workflow and explicit export warning.
 
-Installed outside Git:
+Installed outside Git on the Mac during the experiment:
 
 - `~/.local/share/nvim-own/notebook-venv`: uv-created Python 3.12.13 host with
   pynvim 0.6.0, jupyter-client 8.10.0, nbformat 5.11.1, Pillow 12.3.0, and their
@@ -177,7 +251,7 @@ and running `nvim-own --headless +UpdateRemotePlugins +qa` successfully register
 this. An eval-side pip attempt hit PEP 668; no system packages were changed.
 The smoke was driven through the real Neovim socket and `--remote-expr` instead.
 
-## Unresolved output-export failure and first resume action
+## Unresolved output-export failure and historical reproducer
 
 The removed `Space j w` callback ran `:write` followed by `:MoltenExportOutput!`.
 Writing inputs succeeded; exporting fresh results raised:
@@ -197,13 +271,13 @@ saved output dictionary to `ErrorOutputChunk.extras`, including `output_type`.
 The exporter passes `chunk.output_type` positionally and `**chunk.extras`, supplying
 that parameter twice. This has not been fixed or confirmed with a passing export.
 
-First resume action, only if the user asks to continue: reproduce on a fresh copy
-of the full notebook with that imported error output. Initialize `bi-ml1`, execute
-one simple cell, and call non-bang `MoltenExportOutput` so a successful probe would
-write `copy-of-...ipynb` rather than replace the input notebook. Inspect the error
-branch and exporter in the pinned Molten revision, then choose a reproducible
-upstream/versioned fix. Do not patch only the downloaded clone, discard imported
-errors, or suppress the exception as a supposed fix.
+Reproducer retained for history, not an active task: on a fresh copy of the full
+notebook containing that imported error output, initialize `bi-ml1`, execute one
+simple cell, and call non-bang `MoltenExportOutput` so a successful probe would
+write `copy-of-...ipynb` rather than replace the input notebook. Any future
+investigation requires a new user request and should inspect the error branch and
+exporter in the pinned revision. Do not patch only a downloaded clone, discard
+imported errors, or suppress the exception as a supposed fix.
 
 After a real fix: verify text/error/image payloads, execution counts, metadata,
 and cell identity through export and reopen; include duplicate code cells because
@@ -224,26 +298,20 @@ The coursework progress document says the user is at joining datasets (template
 cell 41). Do not solve the remaining exercises or execute all unfinished cells
 when resuming configuration work. No commit was made in the coursework repository.
 
-## Removing only the notebook experiment
+## Cross-machine cleanup checklist
 
-These are future rollback instructions, NOT deletions performed at this wrap.
-Use chezmoi source as the editing surface and preview before applying. Reverting
-the whole enclosing commit also removes the UI/Flash/C/C++ work, so do not use a
-whole-commit revert when the intent is notebook-only removal.
+The source edits and scoped apply are already complete on Linux. This checklist
+is for the Mac's previously installed, outside-Git artifacts; **those uninstall
+steps have not been executed here**. Inspect its current state first because other
+consumers may have started using packages since the original checkpoint.
 
-1. Remove `require("plugins.jupytext")` and `require("plugins.molten")` from
-   `dot_config/nvim-own/lua/plugins/init.lua`.
-2. Remove the early `vim.g.python3_host_prog` notebook-host assignment/comment
-   from `dot_config/nvim-own/init.lua`.
-3. Remove the whole `nvim-own-notebook-keymaps` FileType autocmd block from
-   `lua/config/keymaps.lua`, leaving Flash, window navigation, and formatting.
-   Remove only the `Space j` group from `lua/plugins/which-key.lua`.
-4. Remove the `image = {...}` block from `lua/plugins/snacks.lua`, retaining
-   explorer/picker/dashboard and their existing controls.
-5. Remove these three notebook-only source files:
-   `lua/config/notebooks.lua`, `lua/plugins/jupytext.lua`, `lua/plugins/molten.lua`.
-   Add the following literal live-relative paths to `.chezmoiremove` so their
-   deployed copies are removed too:
+1. Pull and integrate the notebook-retirement commit once published on `main`.
+   Pulling only the original implementation checkpoint does not remove anything.
+   Avoid reverting that implementation commit wholesale: it also contains
+   unrelated UI/Flash/C/C++ work.
+2. On the Mac, preserve live/source drift, preview
+   `chezmoi diff --recursive ~/.config/nvim-own ~/.config/tmux/general.conf`, then
+   apply that reviewed scope. `.chezmoiremove` retires these exact live files:
 
    ```text
    .config/nvim-own/lua/config/notebooks.lua
@@ -251,35 +319,48 @@ whole-commit revert when the intent is notebook-only removal.
    .config/nvim-own/lua/plugins/molten.lua
    ```
 
-6. Remove the new `allow-passthrough` comment/setting from
-   `dot_config/tmux/general.conf` if no other graphics use needs it. After applying,
-   explicitly `tmux set-option -g allow-passthrough off` to restore the observed
-   pre-experiment runtime value; removing a config line alone does not unset it.
-7. Update/remove the notebook README section and module-table rows. This checkpoint
-   can remain as historical/removal evidence or be deleted at the user's request.
-8. Preview `chezmoi diff --recursive ~/.config/nvim-own ~/.config/tmux/general.conf`,
-   apply that reviewed scope, and explicitly check the three live files are gone.
-   Restart `nvim-own`; do not reload user buffers at the cost of unsaved work.
-9. Remove only the now-unused Molten/Jupytext clones under
-   `~/.local/share/nvim-own/lazy/`, and the isolated `notebook-venv` directory if no
-   other Python-host feature now uses it. Review generated `lazy-lock.json` entries.
-   The current generated `rplugin.vim` registers only Molten; remove it when retiring
-   this sole remote plugin. If other remote plugins have since been added, rebuild
-   their manifest with their valid Python host instead.
-10. If still unused elsewhere, `uv tool uninstall jupytext`; remove only the new
-    user kernelspec `~/Library/Jupyter/kernels/bi-ml1` (or use the host's
-    `jupyter kernelspec remove bi-ml1` before deleting the host). **Keep the existing
-    `/opt/miniconda3/envs/bi-ml1` environment and every coursework notebook/asset.**
-11. ImageMagick can be uninstalled with Homebrew if it is no longer needed by any
-    feature. Do not remove CMake, clang-format, clangd, Snacks itself, or the
-    C/C++/Python parsers. Avoid broad `brew autoremove` or deleting all nvim-own
-    data/cache. Optional image caches belong under `~/.cache/nvim-own/snacks/image`.
+   Explicitly check the files are absent; an empty rendered diff alone is not proof
+   that retired, no-longer-managed files were deleted.
+3. Save and close/restart affected `nvim-own` instances without discarding user
+   buffers. Already-loaded plugins/autocmds will not disappear simply because
+   their files were removed. In an existing tmux server, explicitly run
+   `tmux set-option -g allow-passthrough off`; removing the config line alone
+   does not unset an inherited runtime value. Preserve the F12 passthrough setup.
+4. Before deleting the Python host, inspect its `jupyter kernelspec list --json`.
+   Remove only the experiment-created `bi-ml1` user kernelspec if unused elsewhere;
+   the original location was `~/Library/Jupyter/kernels/bi-ml1`. Its removal does
+   not require deleting or modifying `/opt/miniconda3/envs/bi-ml1`.
+5. If no other workflow uses the CLI, run `uv tool uninstall jupytext`. This removes
+   its dedicated tool environment and exposed launchers, not scientific packages
+   in the coursework environment. Do not uninstall uv or its unrelated tools.
+6. Remove only the unused plugin directories
+   `~/.local/share/nvim-own/lazy/molten-nvim` and
+   `~/.local/share/nvim-own/lazy/jupytext.nvim`. Remove their entries from the
+   unmanaged live `~/.config/nvim-own/lazy-lock.json`, preserving all other entries.
+   Do not delete the complete plugin/data directory or lockfile.
+7. Inspect `~/.local/share/nvim-own/rplugin.vim`. At the original checkpoint it
+   registered only Molten, so removing that sole-plugin manifest was appropriate.
+   If another remote plugin has since been registered, rebuild its manifest with
+   its own valid host instead of deleting shared registrations.
+8. Remove `~/.local/share/nvim-own/notebook-venv` only after checking that no other
+   Python-host feature uses it. Remove the notebook image cache at
+   `~/.cache/nvim-own/snacks/image` if still unused. Keep all unrelated caches,
+   editor state, sessions, parsers, Mason tools, and lazy.nvim itself.
+9. ImageMagick was newly installed for plot rendering. If unused by other tools,
+   uninstall it with `brew uninstall imagemagick`. Its recorded new dependencies
+   were freetype, aom, libde265, libheif, m4, and libtool; do not broadly run
+   `brew autoremove` or remove libraries now shared with other packages.
+10. Preserve the existing Conda `bi-ml1` environment, all coursework notebooks and
+    assets, Snacks navigation, themes, completion, Pyright/Ruff/clangd, C/C++/Python
+    parsers, CMake, and clang-format. This retires the Neovim notebook experiment,
+    not the user's scientific-computing environment.
+11. Verify the three retired live modules, notebook bindings, host override, and
+    plugin registrations are gone. Record the package/kernel/manifest cleanup
+    actually performed; do not infer it from a clean chezmoi diff.
 
-Temporary notebook/video/conversion probes are not intended permanent artifacts.
-The notebook test workspace was removed during wrap; the prior downloaded demo
-workspace `/tmp/nvim-notebook-demo.hGNbDJ` was already removed during research.
-The final tmux pane listing contained only the user's existing `%2` OMP, `%17`
-and `%22` Neovim, and `%20` Codex panes. Do not close those user-owned panes.
+The original temporary notebook workspace and downloaded demo workspace were
+removed during the historical wrap. No coursework originals were edited. Preserve
+the user's existing editor/tmux panes; retirement is not permission to close them.
 
 ## Publication state at checkpoint creation
 

@@ -2,9 +2,6 @@
 -- Set the leader before any loaded module can define leader mappings.
 vim.g.mapleader = " "
 
--- Remote-plugin discovery needs its host before lazy.nvim's first installation.
-vim.g.python3_host_prog = vim.fn.stdpath("data") .. "/notebook-venv/bin/python"
-
 -- === Native editor behavior ===
 require("config.options")
 require("config.diagnostics")

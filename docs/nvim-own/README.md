@@ -89,16 +89,15 @@ native behavior and the local colorscheme, then starts the explicit plugin graph
 | --- | --- |
 | `config.options` | Enable line numbers, hide end-of-buffer (`~`) markers, share one global statusline across splits, and define which workspace state sessions save. |
 | `config.diagnostics` | Show underlines, severity-sorted signs, and virtual lines; defer updates during insert mode. |
-| `config.keymaps` | Map window/file navigation, Flash jumps, buffer operations, session controls, colorscheme selection, language formatting, and buffer-local notebook controls. |
+| `config.keymaps` | Map window/file navigation, Flash jumps, buffer operations, session controls, colorscheme selection, and language formatting. |
 | `config.lazy` | Bootstrap lazy.nvim and load the explicit plugin index. |
-| `config.notebooks` | Resolve the current `# %%` code cell and send its range to Molten. |
 | `languages` | Validate active language containers and build a deterministic server registry. |
 | `languages.python` | Declare Pyright for type analysis and Ruff for linting, formatting, and import actions. |
 | `languages.c_cpp` | Declare the shared clangd server for C/C++ completion, diagnostics, navigation, and formatting. |
 | `plugins.colorscheme` | Install and configure optional Tokyo Night and Catppuccin themes. |
 | `plugins.blink` | Provide insert-mode completion from LSP, file paths, and buffer words. |
 | `plugins.flash` | Provide labeled jumps, remote operators, and Tree-sitter selections. |
-| `plugins.snacks` | Provide the persistent file sidebar, startup dashboard, search pickers, and notebook image placements. |
+| `plugins.snacks` | Provide the persistent file sidebar, startup dashboard, and search pickers. |
 | `plugins.bufferline` | Display file buffers as tabs and close them without disrupting splits. |
 | `plugins.lualine` | Render the global statusline with colors derived from the active theme. |
 | `plugins.noice` | Render centered command popups and messages without reserving a bottom command row. |
@@ -106,8 +105,6 @@ native behavior and the local colorscheme, then starts the explicit plugin graph
 | `plugins.treesitter` | Install the pinned Python, C, and C++ grammars and enable native Tree-sitter highlighting. |
 | `plugins.lsp` | Provision declared servers through Mason, then invoke the runtime connector. |
 | `config.lsp` | Configure and explicitly enable every declared server. |
-| `plugins.jupytext` | Open Python notebooks as Hydrogen-style text and update notebook inputs on write. |
-| `plugins.molten` | Run cells through Jupyter kernels, import saved outputs, and provide bounded previews and focusable output windows. |
 
 The table describes ownership, not one flat `require()` chain.
 [lua/plugins/init.lua](../../dot_config/nvim-own/lua/plugins/init.lua) collects
@@ -381,80 +378,21 @@ The smoke project used C17 and C++20, built both executables, and exercised
 standard headers, cross-file navigation, completion, diagnostics, and formatting
 in an isolated `nvim-own` TUI.
 
-## Notebook experiment — paused
+## Notebook experiment — removed
 
-The Molten/Jupytext setup is applied, but **not a completed notebook round-trip
-workflow**. Cell execution, saved-output import, DataFrame completion, and table
-scrolling were exercised on copies of the BI-ML1 notebooks. Exporting freshly
-executed outputs failed inside Molten with
-`TypeError: new_output() got multiple values for argument 'output_type'`.
-The failed `Space j w` binding was removed; do not rely on `MoltenExportOutput`
-until the imported-error-output case is fixed and verified.
+The Molten/Jupytext experiment was retired at the user's request on 2026-10-05.
+There are no notebook plugins, notebook keymaps, cell helpers, Python-host
+overrides, or notebook image settings in the current profile. The experiment's
+tmux graphics setting was also removed; normal editor and language features remain.
 
-[Checkpoint and exact removal instructions](checkpoint-2026-10-05.md) record the
-installed dependencies, reproducer, original-file hashes, and resume point.
-The normal LazyVim profile and original coursework notebooks were not edited.
+[Historical checkpoint and retirement record](checkpoint-2026-10-05.md) preserve
+the exact stack and versions, attempts, observed successes, export failure,
+verification limits, original-notebook hashes, and cross-machine cleanup checklist.
+Execution and saved-output import worked on Mac notebook copies, but saving fresh
+results back into `.ipynb` failed. This was not a completed round-trip workflow.
 
-### Installed pieces and environment
+The rollback was applied and smoke-checked on Linux. Notebook runtime artifacts
+were absent there. Mac packages and generated runtime files were installed outside
+Git and are not claimed to be uninstalled; their remaining cleanup is documented
+in the historical record. Notebook development is not an active roadmap item.
 
-- `plugins/jupytext.lua` pins `GCBallesteros/jupytext.nvim` to
-  `c8baf3ad344c59b3abd461ecc17fc16ec44d0f7b`; the Jupytext CLI is installed through
-  `uv tool`. Hydrogen keeps `# %%` boundaries and IPython `%magics` intact.
-  Ordinary percent mode commented the magics and prevented later saved plots
-  from matching Molten's importer.
-- `plugins/molten.lua` pins upstream Molten to
-  `bedea63819c618e007e7c40059fc6e72d598c8df`, including its Snacks image provider.
-  No pyworks, Iron, Quarto, image.nvim, or author-specific forks were installed.
-- Neovim's Python host is isolated at
-  `stdpath("data") .. "/notebook-venv/bin/python"`. It requires `pynvim`,
-  `jupyter-client`, `nbformat`, and `pillow`; `init.lua` selects it before
-  lazy.nvim can run remote-plugin discovery. After installing the host packages,
-  `:UpdateRemotePlugins` registers Molten. This host is not the project kernel.
-- On this Mac, the existing Conda `bi-ml1` environment supplies the actual
-  notebook packages. Its Python was registered as Jupyter kernel `bi-ml1`.
-  Activate the environment before starting Neovim so Pyright also sees its
-  packages; choosing a Molten kernel alone does not change Pyright's interpreter.
-- Snacks image support uses ImageMagick and the terminal's Kitty graphics
-  protocol. The tmux configuration enables `allow-passthrough on`.
-  Plot execution and image placement were exercised, but macOS screen capture
-  failed, so the final Ghostty pixels were not inspected.
-
-### Trying the verified execution workflow
-
-Start on a copy of a notebook, with its CSV/image assets in the same directory.
-Launch from that directory: the kernel's working directory comes from the
-Python host at startup, not automatically from the notebook's path.
-The BI-ML1 template's unfinished `...` cells are intentional; do not run all cells
-or fill the coursework solutions just to test this configuration.
-
-The Python-buffer mappings are:
-
-| Key | Action |
-| --- | --- |
-| `]j`, `[j` | Next/previous `# %%` cell boundary, including Markdown cells. |
-| `Space j i` | Select a kernel; for this coursework choose `bi-ml1`. Saved notebook outputs import after selection, without executing their source. |
-| `Space j r` | Run the current code cell; in visual mode, run the selection. |
-| `Space j l` | Run the current line. |
-| `Space j o` | Open and focus the current cell's output window. |
-| `Space j h` | Hide the output window from the code buffer. |
-| `Space j p` | Re-import saved notebook outputs. |
-| `Space j x` | Interrupt the kernel. |
-| `Space j k` | Restart the kernel, keeping displayed outputs; variables must be recreated. |
-| `Space j I` | Show kernel information. |
-
-Output previews are limited to three lines. Large results and plots belong in
-the manually focused output window, not a shared REPL transcript or permanent
-right sidebar. In that window, use `gg`, `G`, `Ctrl-d`, and `Ctrl-u` vertically;
-use `zL`/`zH` on a populated table row horizontally. Wrapping is disabled to keep
-columns aligned. `:q` closes just the output window and returns to code.
-
-Pandas can omit data before Molten receives it. For a complete text table, use
-an explicit display such as `print(df.head(80).to_string(index=False))`;
-scrolling cannot recover rows/columns already replaced with `...`.
-
-`:w` updates notebook inputs through Jupytext and preserved existing output
-payloads and execution counts in the tested copies. **It does not save the
-fresh Molten results.** Jupytext may use an existing sibling `.py` file instead
-of reconverting the `.ipynb`, so do not leave an unrelated or stale companion.
-Pyright can still flag notebook-only syntax/builtins such as `%matplotlib`
-and `display`; kernel execution is separate from those static diagnostics.

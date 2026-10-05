@@ -1,4 +1,4 @@
--- Enable only the navigation and image features used by this profile.
+-- Enable only the navigation features used by this profile.
 return {
   "folke/snacks.nvim",
   version = "v2.31.0",
@@ -11,11 +11,6 @@ return {
     require("snacks").setup({
       -- The default explorer is a persistent left sidebar and replaces netrw.
       explorer = { enabled = true },
-      -- Molten supplies plot placements; don't scan documents for extra images.
-      image = {
-        enabled = true,
-        doc = { enabled = false, max_width = 100, max_height = 24 },
-      },
       picker = {
         enabled = true,
         sources = {
