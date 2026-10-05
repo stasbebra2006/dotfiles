@@ -1,14 +1,19 @@
--- LazyVim loads these options before lazy.nvim starts.
--- Upstream defaults: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
-
--- === Interface ===
-vim.opt.showcmd = true
+-- Native editor options that do not depend on plugins.
+vim.opt.number = true
+-- Share the statusline across splits instead of giving the sidebar its own.
 vim.opt.laststatus = 3
 
--- === Clipboard ownership ===
--- Keep unnamed registers internal; autocmds and keymaps bridge explicit operations to +.
-vim.opt.clipboard = ""
+-- Hide end-of-buffer markers in unused screen space.
+vim.opt.fillchars:append({ eob = " " })
 
--- === Line numbers ===
-vim.opt.number = true
-vim.opt.relativenumber = false
+-- Restore files and layouts, not stale configuration options or plugin mappings.
+vim.opt.sessionoptions = {
+  "buffers",
+  "curdir",
+  "tabpages",
+  "winsize",
+  "help",
+  "globals",
+  "skiprtp",
+  "folds",
+}

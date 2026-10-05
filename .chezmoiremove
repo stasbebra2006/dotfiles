@@ -8,9 +8,34 @@
 .local/share/kxmlgui5/konsole/konsoleui.rc
 
 # The LSP plugin container supersedes the Mason-only setup module.
-.config/nvim-own/lua/plugins/mason.lua
+.config/nvim/lua/plugins/mason.lua
 
 # Retired Molten/Jupytext notebook experiment; keep historical notes in docs.
-.config/nvim-own/lua/config/notebooks.lua
-.config/nvim-own/lua/plugins/jupytext.lua
-.config/nvim-own/lua/plugins/molten.lua
+.config/nvim/lua/config/notebooks.lua
+.config/nvim/lua/plugins/jupytext.lua
+.config/nvim/lua/plugins/molten.lua
+
+# Profiles and runtime state are moved by the one-time migration before apply.
+.config/nvim-own
+.local/bin/nvim-own
+
+# LazyVim-only entries must not survive in the new native base configuration.
+.config/nvim/.gitignore
+.config/nvim/.neoconf.json
+.config/nvim/lazyvim.json
+.config/nvim/stylua.toml
+.config/nvim/README.md
+.config/nvim/LICENSE
+.config/nvim/colors/previous-custom.lua
+.config/nvim/colors/vscode-clean.lua
+.config/nvim/lua/config/autocmds.lua
+.config/nvim/lua/plugins/smart-splits.lua
+.config/nvim/lua/plugins/ui.lua
+.config/nvim/lua/plugins/explorer.lua
+.config/nvim/lua/plugins/example.lua
+.config/nvim/lua/previous_custom
+.config/nvim/lua/vscode_clean
+.config/nvim/lua/lualine
+
+# VS Code integration now belongs only to the default base profile.
+.config/lazy-nvim/lua/config/vscode.lua

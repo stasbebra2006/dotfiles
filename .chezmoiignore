@@ -9,6 +9,12 @@ docs/
 .agents/skills/fix-brightness
 {{ end }}
 
+# VS Code uses ~/.config on Linux and ~/Library on macOS.
+{{ if ne .chezmoi.os "linux" }}
+.config/Code
+.config/Code/**
+{{ end }}
+
 # macOS application support
 {{ if ne .chezmoi.os "darwin" }}
 Library

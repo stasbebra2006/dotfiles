@@ -1,83 +1,69 @@
--- LazyVim loads this file on VeryLazy after its default mappings.
--- Upstream defaults: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
+-- Native window navigation; insert-mode editing keys remain unchanged.
+vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to left window" })
+vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Go to lower window" })
+vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Go to upper window" })
+vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
 
--- === Clipboard-aware paste ===
--- Use the system clipboard only when no explicit register was selected.
-local function paste_command(command)
-  local register = vim.v.register == '"' and "+" or vim.v.register
-  return '"' .. register .. command
-end
+-- Resolve plugin modules only when a mapping runs, after lazy.nvim has loaded them.
+vim.keymap.set({ "n", "x", "o" }, "s", function()
+  require("flash").jump()
+end, { desc = "Flash" })
 
-vim.keymap.set("n", "p", function()
-  return paste_command("p")
-end, { expr = true, desc = "Paste Clipboard After" })
+vim.keymap.set({ "n", "x", "o" }, "S", function()
+  require("flash").treesitter()
+end, { desc = "Flash Tree-sitter" })
 
-vim.keymap.set("n", "P", function()
-  return paste_command("P")
-end, { expr = true, desc = "Paste Clipboard Before" })
+vim.keymap.set("o", "r", function()
+  require("flash").remote()
+end, { desc = "Remote Flash" })
 
--- === Explorer ===
-vim.keymap.set("n", "<leader>er", function()
-  Snacks.explorer.reveal()
-end, { desc = "Explorer Reveal File" })
+vim.keymap.set({ "o", "x" }, "R", function()
+  require("flash").treesitter_search()
+end, { desc = "Flash Tree-sitter search" })
 
-vim.keymap.set("n", "<leader>ef", function()
-  Snacks.explorer({ toggle = false })
-end, { desc = "Explorer Focus" })
+vim.keymap.set("n", "<leader>e", function()
+  require("snacks").explorer({ cwd = vim.fn.getcwd() })
+end, { desc = "File explorer" })
 
--- === Path copying ===
-vim.keymap.set("n", "<leader>cp", function()
-  local path = vim.fn.expand("%:p")
-  vim.fn.setreg("+", path)
-  vim.notify('Copied: ' .. path)
-end, { desc = "Copy Absolute Path" })
+vim.keymap.set("n", "<leader>ff", function()
+  require("snacks").picker.files({ cwd = vim.fn.getcwd() })
+end, { desc = "Find files" })
 
-vim.keymap.set("n", "<leader>cn", function()
-  local name = vim.fn.expand("%:t")
-  vim.fn.setreg("+", name)
-  vim.notify('Copied: ' .. name)
-end, { desc = "Copy Filename" })
+vim.keymap.set("n", "<leader>fg", function()
+  require("snacks").picker.grep({ cwd = vim.fn.getcwd() })
+end, { desc = "Search project text" })
 
--- Build a project-relative Python import and normalize src/ and __init__.py.
-vim.keymap.set("n", "<leader>ci", function()
-  local file = vim.api.nvim_buf_get_name(0)
-  if file == "" or not file:match("%.py$") then
-    vim.notify("Current buffer is not a Python file", vim.log.levels.WARN)
-    return
-  end
+vim.keymap.set("n", "<leader>uC", function()
+  require("snacks").picker.colorschemes()
+end, { desc = "Colorschemes" })
 
-  local root = LazyVim.root({ buf = 0, normalize = true })
-  local relative = vim.fs.relpath(root, file)
-  if relative == nil or relative:match("^%.%.") then
-    vim.notify("Current file is outside the project root", vim.log.levels.WARN)
-    return
-  end
+vim.keymap.set("n", "<S-h>", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous buffer" })
+vim.keymap.set("n", "<S-l>", "<cmd>BufferLineCycleNext<cr>", { desc = "Next buffer" })
+vim.keymap.set("n", "<leader>bd", function()
+  require("snacks").bufdelete()
+end, { desc = "Close buffer" })
 
-  local import_path = relative
-    :gsub("\\", "/")
-    :gsub("^src/", "")
-    :gsub("%.py$", "")
-    :gsub("/__init__$", "")
-    :gsub("/", ".")
+vim.keymap.set("n", "<leader>qs", function()
+  require("persistence").load()
+end, { desc = "Restore session" })
 
-  vim.fn.setreg("+", import_path)
-  vim.notify("Copied import path: " .. import_path)
-end, { desc = "Copy Python Import Path" })
+vim.keymap.set("n", "<leader>qS", function()
+  require("persistence").select()
+end, { desc = "Select session" })
 
--- === Terminal and dashboard ===
-vim.keymap.set("n", "<leader>fT", function()
-  Snacks.terminal(nil, { cwd = vim.fn.expand("%:p:h") })
-end, { desc = "Terminal (File Dir)" })
+vim.keymap.set("n", "<leader>ql", function()
+  require("persistence").load({ last = true })
+end, { desc = "Restore last session" })
 
-vim.keymap.set("t", "<esc>", [[<C-\><C-n>]], { desc = "Escape Terminal Mode" })
+vim.keymap.set("n", "<leader>qd", function()
+  require("persistence").stop()
+end, { desc = "Don't save current session" })
 
-vim.keymap.set("n", "<leader>db", function()
-  Snacks.dashboard.open()
-end, { desc = "Open Dashboard" })
-
--- === Buffer navigation ===
-vim.keymap.set("n", "<C-Tab>", "<cmd>BufferLineCycleNext<cr>", { desc = "Next Buffer" })
-vim.keymap.set("n", "<C-S-Tab>", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous Buffer" })
-
-vim.keymap.set("n", "<leader>bH", "<cmd>BufferLineMovePrev<cr>", { desc = "Move Buffer Left" })
-vim.keymap.set("n", "<leader>bL", "<cmd>BufferLineMoveNext<cr>", { desc = "Move Buffer Right" })
+vim.keymap.set("n", "<leader>cf", function()
+  -- Select only the language-owned formatters; do not write or run lint fixes.
+  vim.lsp.buf.format({
+    filter = function(client)
+      return client.name == "ruff" or client.name == "clangd"
+    end,
+  })
+end, { desc = "Format buffer" })

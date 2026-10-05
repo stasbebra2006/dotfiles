@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Use ~/.config/lazy-nvim and matching isolated data, state, and cache directories.
+export NVIM_APPNAME=lazy-nvim
+# Retain the system/Homebrew core previously used by the LazyVim profile.
+exec {{ if eq .chezmoi.os "darwin" }}/opt/homebrew/bin/nvim{{ else }}/usr/bin/nvim{{ end }} "$@"

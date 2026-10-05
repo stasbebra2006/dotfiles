@@ -1,0 +1,266 @@
+// Place your key bindings in this file to override the defaults
+[
+	{
+		"key": "space",
+		"command": "whichkey.show",
+		"when": "editorTextFocus && neovim.init && neovim.mode != insert && editorLangId not in neovim.editorLangIdExclusions"
+	},
+	{
+		"key": "space",
+		"command": "whichkey.show",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus"
+	},
+	{
+		"key": "s",
+		"command": "runCommands",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus",
+		"args": {
+			"commands": [
+				"notebook.cell.edit",
+				{
+					"command": "vscode-neovim.send",
+					"args": "s"
+				}
+			]
+		}
+	},
+	{
+		"key": "/",
+		"command": "notebook.find",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus"
+	},
+	{
+		"key": "n",
+		"command": "editor.action.nextMatchFindAction",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus && !notebookOutputInputFocused"
+	},
+	{
+		"key": "shift+n",
+		"command": "editor.action.previousMatchFindAction",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus && !notebookOutputInputFocused"
+	},
+	{
+		"key": "ctrl+o",
+		"command": "runCommands",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus",
+		"args": {
+			"commands": [
+				"notebook.cell.edit",
+				{
+					"command": "vscode-neovim.send",
+					"args": "<C-o>"
+				}
+			]
+		}
+	},
+	{
+		"key": "ctrl+i",
+		"command": "runCommands",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus",
+		"args": {
+			"commands": [
+				"notebook.cell.edit",
+				{
+					"command": "vscode-neovim.send",
+					"args": "<C-i>"
+				}
+			]
+		}
+	},
+	{
+		"key": "ctrl+f",
+		"command": "runCommands",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus",
+		"args": {
+			"commands": [
+				"notebook.cell.edit",
+				"vscode-neovim.ctrl-f"
+			]
+		}
+	},
+	{
+		"key": "ctrl+b",
+		"command": "runCommands",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus",
+		"args": {
+			"commands": [
+				"notebook.cell.edit",
+				"vscode-neovim.ctrl-b"
+			]
+		}
+	},
+	{
+		"key": "shift+h",
+		"command": "workbench.action.previousEditor",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus"
+	},
+	{
+		"key": "shift+l",
+		"command": "workbench.action.nextEditor",
+		"when": "notebookEditorFocused && !editorTextFocus && !inputFocus"
+	},
+	{
+		"key": "space",
+		"command": "whichkey.show",
+		"when": "(sideBarFocus || panelFocus || auxiliaryBarFocus) && !inputFocus && !terminalFocus"
+	},
+	{
+		"key": "ctrl+k ctrl+o",
+		"command": "workbench.action.files.openFolder"
+	},
+	{
+		"key": "ctrl+n",
+		"command": "explorer.newFile",
+		"when": "filesExplorerFocus && !inputFocus"
+	},
+	{
+		"key": "escape",
+		"command": "vscode-neovim.escape",
+		"when": "editorTextFocus && neovim.init && notebookCellFocused && neovim.transientActive && editorLangId not in neovim.editorLangIdExclusions"
+	},
+	{
+		"key": "/",
+		"command": "notebook.find",
+		"when": "editorTextFocus && neovim.init && notebookCellFocused && neovim.mode != insert && editorLangId not in neovim.editorLangIdExclusions"
+	},
+	{
+		"key": "n",
+		"command": "editor.action.nextMatchFindAction",
+		"when": "editorTextFocus && neovim.init && notebookCellFocused && neovim.mode == normal && !inputFocus && editorLangId not in neovim.editorLangIdExclusions"
+	},
+	{
+		"key": "shift+n",
+		"command": "editor.action.previousMatchFindAction",
+		"when": "editorTextFocus && neovim.init && notebookCellFocused && neovim.mode == normal && !inputFocus && editorLangId not in neovim.editorLangIdExclusions"
+	},
+	{
+		"key": "shift+h",
+		"command": "workbench.action.previousEditor",
+		"when": "editorTextFocus && neovim.init && neovim.mode == normal && editorLangId not in neovim.editorLangIdExclusions"
+	},
+	{
+		"key": "shift+l",
+		"command": "workbench.action.nextEditor",
+		"when": "editorTextFocus && neovim.init && neovim.mode == normal && editorLangId not in neovim.editorLangIdExclusions"
+	},
+	{
+		"key": "tab",
+		"command": "editor.action.inlineSuggest.commit",
+		"when": "inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorHoverFocused && !editorTabMovesFocus && !suggestWidgetVisible || cursorAtInlineEdit && inlineEditIsVisible && !editor.hasSelection && !editorHoverFocused && !editorTabMovesFocus && !suggestWidgetVisible || inlineEditIsVisible && inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorHoverFocused && !editorTabMovesFocus && !suggestWidgetVisible || cursorAtInlineEdit && inlineEditIsVisible && inlineSuggestionVisible && !editor.hasSelection && !editorHoverFocused && !editorTabMovesFocus && !suggestWidgetVisible"
+	},
+	{
+		"key": "tab",
+		"command": "-editor.action.inlineSuggest.commit",
+		"when": "inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorHoverFocused && !editorTabMovesFocus && !suggestWidgetVisible || cursorAtInlineEdit && inlineEditIsVisible && !editor.hasSelection && !editorHoverFocused && !editorTabMovesFocus && !suggestWidgetVisible || inlineEditIsVisible && inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorHoverFocused && !editorTabMovesFocus && !suggestWidgetVisible || cursorAtInlineEdit && inlineEditIsVisible && inlineSuggestionVisible && !editor.hasSelection && !editorHoverFocused && !editorTabMovesFocus && !suggestWidgetVisible"
+	},
+	{
+		"key": "j",
+		"command": "list.focusDown",
+		"when": "listFocus && !inputFocus"
+	},
+	{
+		"key": "k",
+		"command": "list.focusUp",
+		"when": "listFocus && !inputFocus"
+	},
+	{
+		"key": "h",
+		"command": "list.collapse",
+		"when": "listFocus && !inputFocus"
+	},
+	{
+		"key": "l",
+		"command": "list.select",
+		"when": "listFocus && !inputFocus"
+	},
+	{
+		"key": "o",
+		"command": "list.select",
+		"when": "listFocus && !inputFocus"
+	},
+	{
+		"key": "ctrl+n",
+		"command": "list.focusDown",
+		"when": "listFocus && !inputFocus"
+	},
+	{
+		"key": "ctrl+p",
+		"command": "list.focusUp",
+		"when": "listFocus && !inputFocus"
+	},
+	{
+		"key": "ctrl+f",
+		"command": "list.focusPageDown",
+		"when": "listFocus && !inputFocus"
+	},
+	{
+		"key": "ctrl+b",
+		"command": "list.focusPageUp",
+		"when": "listFocus && !inputFocus"
+	},
+	{
+		"key": "ctrl+j",
+		"command": "workbench.action.quickOpenSelectNext",
+		"when": "inQuickOpen"
+	},
+	{
+		"key": "ctrl+k",
+		"command": "workbench.action.quickOpenSelectPrevious",
+		"when": "inQuickOpen"
+	},
+	{
+		"key": "escape",
+		"command": "workbench.action.focusActiveEditorGroup",
+		"when": "sideBarFocus || panelFocus"
+	},
+	{
+		"key": "escape",
+		"command": "list.closeFind",
+		"when": "filesExplorerFocus && inputFocus"
+	},
+	{
+		"key": "ctrl+n",
+		"command": "list.focusDown",
+		"when": "filesExplorerFocus && inputFocus"
+	},
+	{
+		"key": "ctrl+p",
+		"command": "list.focusUp",
+		"when": "filesExplorerFocus && inputFocus"
+	},
+	{
+		"key": "a",
+		"command": "explorer.newFile",
+		"when": "filesExplorerFocus && !inputFocus"
+	},
+	{
+		"key": "shift+a",
+		"command": "explorer.newFolder",
+		"when": "filesExplorerFocus && !inputFocus"
+	},
+	{
+		"key": "r",
+		"command": "renameFile",
+		"when": "filesExplorerFocus && !inputFocus"
+	},
+	{
+		"key": "d",
+		"command": "deleteFile",
+		"when": "filesExplorerFocus && !inputFocus"
+	},
+	{
+		"key": "x",
+		"command": "filesExplorer.cut",
+		"when": "filesExplorerFocus && !inputFocus"
+	},
+	{
+		"key": "y",
+		"command": "filesExplorer.copy",
+		"when": "filesExplorerFocus && !inputFocus"
+	},
+	{
+		"key": "p",
+		"command": "filesExplorer.paste",
+		"when": "filesExplorerFocus && !inputFocus"
+	}
+]

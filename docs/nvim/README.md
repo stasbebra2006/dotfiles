@@ -1,0 +1,425 @@
+# nvim
+
+A personal Neovim configuration built one understood piece at a time. The former
+`nvim-own` profile is now the default native base, shared with VS Code's Neovim
+extension. LazyVim remains a separate named profile, launched with `lazy-nvim`.
+
+## Design goal
+
+Build a capable configuration without hiding behavior behind a framework.
+Features grow through small modules with explicit roles: language modules
+declare requirements, registries combine declarations, and connector modules
+install or activate them. The path from declaration to observable effect should
+remain short.
+
+Do not pre-create layers. Add or extend one only when a real feature needs it,
+and keep one source of truth for each behavior.
+
+## How we work
+
+- Before implementing a learning step, explain the immediate problem and exact
+  proposed code. Introduce one unfamiliar mechanism at a time, trace its
+  execution, then observe it work.
+- Explain what expression runs, what kind of value or table-like interface it
+  touches, where data goes, which code reacts, and when the effect occurs.
+  Introduce architectural labels only after that path is clear.
+- Study one file at a time. Answer questions about the current file without
+  unsolicited recaps, and move only when the user explicitly says to.
+- Prefer direct Lua, explicit plugin registration, and visible `setup()` calls.
+- Use `nvim` to edit and test the base configuration; use `lazy-nvim` when the
+  requested editor is LazyVim. Preserve user-owned buffers and tmux windows;
+  never refresh a file at the cost of unsaved work.
+- Keep authored changes in chezmoi source. Applying, committing, and pushing are
+  separate actions, performed only when requested.
+- When a real need exposes a topic, consult the relevant notes and current
+  sources, compare meaningful options, and agree on the implementation before
+  editing.
+
+## Working references
+
+- [Upstream notes](notes.md): revision-scoped Kickstart and LazyVim findings.
+- [Directions](roadmap.md): possible work, without commitment or order.
+- [Decisions](decisions.md): accepted choices and their rationale.
+- [Diagnostic history](diagnostics.md): the investigation that motivated the
+  nightly core.
+- [Troubleshooting](troubleshooting.md): verified version-sensitive commands
+  and operational gotchas.
+- [Latest checkpoint](checkpoint-2026-10-05.md#session-wrap-2026-10-05-2031-cest):
+  profile migration, unchanged Code integration, and the shared-plugin plan
+  that remains to be agreed on and implemented.
+
+## Profiles and files
+
+The [default wrapper](../../dot_local/bin/executable_nvim) runs
+`~/.local/opt/nvim-unstable` and forwards all arguments. It does not set
+`NVIM_APPNAME`: ordinary `nvim` uses the default `nvim` roots, while an explicitly
+selected named profile remains honored. The
+[LazyVim wrapper](../../dot_local/bin/executable_lazy-nvim.tmpl) sets
+`NVIM_APPNAME=lazy-nvim` and retains the previous system/Homebrew Neovim core.
+
+The selected nightly core is installed manually outside the system package
+manager; each machine needs its own `~/.local/opt/nvim-unstable` binary or symlink.
+Historically, on 2026-09-11, that symlink selected
+`0.13.0-dev-1558+g8d5ebdf986` from the checksum-verified official nightly archive
+at `~/.local/opt/nvim-0.13-nightly-8d5ebdf986/`, while ordinary `nvim` selected
+pacman's stable 0.12.5. Those are historical observations, not current versions.
+
+| Profile | Authored source | Live configuration | Data | State / cache |
+| --- | --- | --- | --- | --- |
+| Default native / VS Code base | `dot_config/nvim/` | `~/.config/nvim/` | `~/.local/share/nvim/` | `~/.local/state/nvim/`, `~/.cache/nvim/` |
+| LazyVim | `dot_config/lazy-nvim/` | `~/.config/lazy-nvim/` | `~/.local/share/lazy-nvim/` | `~/.local/state/lazy-nvim/`, `~/.cache/lazy-nvim/` |
+| Kickstart comparison | `dot_config/nvim-kickstart/` | `~/.config/nvim-kickstart/` | `~/.local/share/nvim-kickstart/` | `~/.local/state/nvim-kickstart/`, `~/.cache/nvim-kickstart/` |
+
+The base live `lazy-lock.json` is not managed in source. `docs/nvim/` is
+repository-only and excluded from chezmoi deployment. The source-only
+`.luarc.json` makes LuaLS use `dot_config/nvim/` as its workspace root and resolve
+modules through that directory's `lua/` tree; chezmoi does not deploy it.
+
+VS Code [settings](../../.chezmoitemplates/vscode-settings.json) and
+[keybindings](../../.chezmoitemplates/vscode-keybindings.json) are tracked
+unchanged through shared Linux/macOS templates. The existing Linux executable
+preference remains `/usr/bin/nvim`.
+
+When `vim.g.vscode` is set, `init.lua` only requires `config.vscode` and returns.
+The host module was moved unchanged from the former LazyVim tree, including its
+keymaps, exported APIs, and optional reuse of already-installed editing plugins.
+This branch does not bootstrap lazy.nvim or load the native UI/LSP configuration.
+Native Neovim retains its existing startup sequence.
+
+For comparison, the [Kickstart launcher](../../dot_local/bin/executable_nvim-kickstart.tmpl)
+retains `NVIM_APPNAME=nvim-kickstart` and the system/Homebrew core, isolated from
+the other profiles. VS Code and native base editing intentionally share the `nvim` roots;
+LazyVim and Kickstart each have separate config, data, state, and cache roots.
+
+### Migrating the old profile names
+
+The one-time before-apply script in `.chezmoiscripts/` moves the old LazyVim
+`nvim` roots to `lazy-nvim`, then the former `nvim-own` roots to `nvim`.
+Configuration, downloaded plugins/tools, state, and caches are preserved;
+saved-session paths and encoded workspace keys are migrated with them.
+An existing destination or colliding saved-session key stops the migration
+before any profile is moved.
+
+Run `chezmoi diff` before applying. Because the hook moves existing managed
+files, chezmoi may ask whether to replace those intentionally moved files;
+review the remaining diff before authorizing those writes. Do not force over
+unrelated live edits. Restart existing editors when their work is saved to
+load the new configuration; the migration does not discard open buffers.
+
+## Startup and current behavior
+
+[init.lua](../../dot_config/nvim/init.lua) selects the lightweight VS Code branch
+when hosted there; otherwise it sets Space as the leader, loads native behavior
+and the local colorscheme, then starts the explicit plugin graph:
+
+| Module | Responsibility |
+| --- | --- |
+| `config.options` | Enable line numbers, hide end-of-buffer (`~`) markers, share one global statusline across splits, and define which workspace state sessions save. |
+| `config.diagnostics` | Show underlines, severity-sorted signs, and virtual lines; defer updates during insert mode. |
+| `config.keymaps` | Map window/file navigation, Flash jumps, buffer operations, session controls, colorscheme selection, and language formatting. |
+| `config.lazy` | Bootstrap lazy.nvim and load the explicit plugin index. |
+| `languages` | Validate active language containers and build a deterministic server registry. |
+| `languages.python` | Declare Pyright for type analysis and Ruff for linting, formatting, and import actions. |
+| `languages.c_cpp` | Declare the shared clangd server for C/C++ completion, diagnostics, navigation, and formatting. |
+| `plugins.colorscheme` | Install and configure optional Tokyo Night and Catppuccin themes. |
+| `plugins.blink` | Provide insert-mode completion from LSP, file paths, and buffer words. |
+| `plugins.flash` | Provide labeled jumps, remote operators, and Tree-sitter selections. |
+| `plugins.snacks` | Provide the persistent file sidebar, startup dashboard, and search pickers. |
+| `plugins.bufferline` | Display file buffers as tabs and close them without disrupting splits. |
+| `plugins.lualine` | Render the global statusline with colors derived from the active theme. |
+| `plugins.noice` | Render centered command popups and messages without reserving a bottom command row. |
+| `plugins.persistence` | Save file workspaces on exit and restore them only when requested. |
+| `plugins.treesitter` | Install the pinned Python, C, and C++ grammars and enable native Tree-sitter highlighting. |
+| `plugins.lsp` | Provision declared servers through Mason, then invoke the runtime connector. |
+| `config.lsp` | Configure and explicitly enable every declared server. |
+
+The table describes ownership, not one flat `require()` chain.
+[lua/plugins/init.lua](../../dot_config/nvim/lua/plugins/init.lua) collects
+ordinary plugin specification tables. Returning a specification stores its
+`config` callback; lazy.nvim runs that callback after loading the plugin.
+
+When the eager LSP specification loads, `plugins.lsp` reads the validated
+language registry, initializes Mason, asks `mason-lspconfig` to install every
+declared server, then passes the registry to `config.lsp`. Setting
+`automatic_enable = false` leaves activation solely to `config.lsp`.
+Blink is an LSP dependency, so its built-in Neovim 0.11+ capability registration
+runs before the connector enables servers.
+
+The Python container declares Pyright and Ruff, retaining `nvim-lspconfig`'s
+maintained commands, filetypes, and root markers. Local overrides disable
+Pyright's organize-imports action and Ruff's hover, so Ruff owns import actions
+and Pyright owns hover. Pyright's type analysis remains enabled.
+
+On a fresh profile, Mason installation is asynchronous. Opening a Python file
+before the first installation finishes may require reopening the file or
+restarting Neovim once. Later starts are unaffected.
+
+## Colorschemes
+
+`mocha-custom` is the startup default, selected in `init.lua` before plugins load.
+Its native `colors/mocha-custom.lua` entry preserves the LazyVim profile's
+`previous-custom` palette and highlight overrides: Neovim's default dark UI
+with custom Catppuccin-style syntax colors. It also restores the dark background
+when switching back from a light theme. The LazyVim profile is unchanged.
+
+`plugins/colorscheme.lua` pins Tokyo Night to `v4.14.1` and Catppuccin to
+`v2.0.0`. Both load on selection; Catppuccin detects installed plugins for its
+integrations. The custom theme itself needs neither plugin.
+
+Press `Space u C` (uppercase `C`) to open Snacks' colorscheme picker, matching
+LazyVim's mapping. Type to filter and use the arrow keys to browse live previews.
+Enter keeps the selected theme for this Neovim process. Escape leaves insert
+mode; Escape again closes the picker and restores the previous theme.
+
+Available plugin variants include `tokyonight-moon`, `tokyonight-night`,
+`tokyonight-storm`, `tokyonight-day`, `catppuccin-mocha`,
+`catppuccin-macchiato`, `catppuccin-frappe`, and `catppuccin-latte`.
+The local `mocha-custom` theme and built-in Neovim themes also appear.
+Catppuccin v2 calls its automatic-flavour
+entry `catppuccin-nvim`; plain `catppuccin` is Neovim's bundled theme.
+
+Picker selections are not saved across restarts. To change the startup default,
+edit the `vim.cmd.colorscheme(...)` call in `init.lua`.
+No separate theme-switching plugin or state file is used.
+
+## Completion
+
+`plugins/blink.lua` pins `blink.cmp` to release `v1.10.2`, using its prebuilt
+Rust fuzzy matcher. No local Rust build, LuaSnip, or snippet collection is needed.
+
+The popup opens automatically while typing. Sources are LSP suggestions, file
+paths, and buffer words. Navigation does not insert a preview, and nothing is
+preselected: Enter accepts only an explicitly selected item.
+
+| Key | Action |
+| --- | --- |
+| `Ctrl-Space` | Open completion; with the menu open, show or hide selected-item documentation. |
+| `Ctrl-n` / `Ctrl-p` | Select the next / previous suggestion. |
+| `Enter` | Accept the selected suggestion; otherwise insert a normal newline. |
+| `Ctrl-e` | Close the popup. |
+| `Tab` | Keep native indentation; not a completion or snippet mapping. |
+
+Command-line completion stays Neovim-native; Noice renders its UI, not Blink.
+Ghost text is not enabled.
+
+## Statusline
+
+`plugins/lualine.lua` pins Lualine to commit
+`221ce6b2d999187044529f49da6554a92f740a96` and loads it on `VeryLazy`.
+Its standard sections show mode, Git branch and diff, diagnostics, filename,
+encoding, file format/type, progress, and cursor position.
+
+`config/options.lua` sets `laststatus = 3`; Lualine also enables `globalstatus`.
+There is one statusline across the editor, not a separate bar for the Snacks
+sidebar or each split. It reflects the focused window and is disabled on the
+Snacks dashboard. Bufferline's top file tabs remain separate.
+
+`theme = "auto"` derives the statusline colors from the active colorscheme,
+including `mocha-custom`, and updates them when the colorscheme picker changes it.
+
+## Command line and messages
+
+`plugins/noice.lua` pins Noice to `v4.10.0`, with NUI `0.4.0` for rendering,
+and loads it on `VeryLazy`. Press `:` for a centered command popup. Enter
+executes the command, Escape cancels, and Tab uses native command completion.
+The `bottom_search` preset keeps `/` and `?` search input at the bottom.
+
+Noice handles messages as well as command input. Its UI attachment sets
+`cmdheight` to zero, so the global statusline reaches the bottom edge without
+an idle command row. Messages and errors remain visible in compact notifications;
+`:Noice` opens message history and `:Noice errors` opens recorded errors.
+The notification view falls back to Noice's built-in mini view; no separate
+notification plugin is required.
+
+This configuration does not replace native LSP hover, signature help, progress,
+server messages, or `vim.notify`. Do not separately force `cmdheight = 0` in
+native options: Noice owns the command/message UI.
+
+## Flash navigation
+
+`plugins/flash.lua` pins `folke/flash.nvim` to commit
+`5f0f270fdc7c5b0c21d903ee85b9cb06f2ac636a` and loads it on `VeryLazy`.
+This maintained revision supports Neovim 0.13's internal search state; the
+`v2.1.0` release accesses removed symbols and fails on this profile's nightly.
+Mappings remain in `config/keymaps.lua`.
+
+| Key | Modes | Action |
+| --- | --- | --- |
+| `s` | Normal, visual, operator-pending | Jump to a labeled search match. |
+| `S` | Normal, visual, operator-pending | Select a labeled Tree-sitter node. |
+| `r` | Operator-pending | Perform an operator at a remote location, then return. |
+| `R` | Visual, operator-pending | Search and select a Tree-sitter node. |
+
+Press `s`, type a few characters, then press the displayed target label.
+Escape cancels without moving the cursor. `S` and `R` require a parser for the
+current language; Python, C, and C++ have parsers. In normal mode, `s` and `S`
+replace the native substitute commands.
+
+For a remote yank, press `yr`, search and choose a label, then use `iw` at the
+target. Flash copies that word and restores the original cursor position.
+Normal-mode `r` remains the native replace-character command.
+
+Flash's default enhanced `f`/`t`/`F`/`T` motions and `;`/`,` repeats are enabled.
+Its regular `/`/`?` search integration remains disabled. No `Ctrl-s` toggle is
+mapped: that key stays reserved for the tmux prefix.
+
+## Files, search, and buffer tabs
+
+`plugins/snacks.lua` pins Snacks to `v2.31.0` and enables its explorer, picker,
+and dashboard. `plugins/bufferline.lua` pins Bufferline to `v4.9.1`.
+The shared icon dependency is `nvim-web-devicons` at `v0.100`.
+
+Start `nvim` without a file to see the dashboard. Its keys are `f` for files,
+`g` for text search, `r` for recent files, `n` for a new file, `s` to restore the
+current project's session, and `q` to quit.
+File and text actions reuse the normal mappings rather than a separate picker
+configuration.
+
+Open Neovim from the project directory, or change it with `:cd`: the sidebar,
+file search, and project-text search explicitly use the current working
+directory. File finding uses the installed search tools; text search uses
+`ripgrep`. The explorer replaces netrw, including when opening a directory.
+
+| Key | Action |
+| --- | --- |
+| `Space e` | File sidebar. |
+| `Space f f` | Fuzzy-find files in the working directory. |
+| `Space f g` | Search text in the working directory. |
+| `Ctrl-h` | Move to the left window (normal mode). |
+| `Ctrl-j` | Move to the lower window (normal mode). |
+| `Ctrl-k` | Move to the upper window (normal mode). |
+| `Ctrl-l` | Move to the right window (normal mode). |
+| `Shift-h` / `Shift-l` | Previous / next buffer from the editor. |
+| `Space b d` | Close the current buffer, preserving the window layout. |
+
+In the sidebar, Enter or `l` opens a file or expands a directory; `h` collapses
+a directory. The sidebar stays visible when opening files.
+
+`Ctrl-h/j/k/l` navigates Neovim windows, including the sidebar, not buffer tabs
+or tmux panes. The explorer relinquishes its normal-mode `Ctrl-j/k` list
+bindings so the global window mappings can run. Its filter keeps `Ctrl-j/k`
+list movement in insert mode; other pickers retain their normal list controls.
+
+The top strip represents file buffers, not Neovim tabpages. Closing a tab or
+using `Space b d` prompts before discarding unsaved edits. Which-key names the
+`Space f` and `Space b` groups as find and buffers.
+
+## Sessions
+
+`plugins/persistence.lua` pins `folke/persistence.nvim` to `v3.1.0`, matching
+LazyVim's session mechanism. Opening a real file activates automatic saving on
+exit. An empty dashboard does not overwrite a saved workspace.
+
+Sessions live under `~/.local/state/nvim/sessions/`, separate from LazyVim.
+They are keyed by the working directory and are branch-aware at Git project
+roots. Launch from the project directory to restore that project's workspace.
+
+Restore is manual: use dashboard `s` or the mappings below. There is no
+startup autorestore. Session contents follow the LazyVim option policy: file
+buffers, working directory, tabpages, window sizes, help, globals, and folds,
+without replaying configuration options or plugin mappings.
+
+| Key | Action |
+| --- | --- |
+| `Space q s` | Restore the current directory's session. |
+| `Space q S` | Choose a saved session. |
+| `Space q l` | Restore the most recently saved session. |
+| `Space q d` | Stop saving for this Neovim process; do not replace the session on exit. |
+
+Which-key labels `Space q` as sessions. Sessions restore the workspace, not
+unsaved file contents: save your changes before exiting.
+
+## Python highlighting, linting, and formatting
+
+`plugins/treesitter.lua` pins nvim-treesitter's maintained `main` API to commit
+`e289100ff98969e118c702199d88b764ce9e7fdf`. The plugin is eager-loaded; its build
+installs or refreshes the matching Python, C, and C++ parsers and queries under
+`~/.local/share/nvim/site/`. Their `FileType` autocmd starts Neovim's native
+Tree-sitter highlighter. This does not enable Tree-sitter indentation or change
+editing options.
+
+Building the parsers requires a C compiler, `curl`, `tar`, and tree-sitter CLI
+0.26.1 or newer. This Mac has CLI 0.27.0. The plugin requires Neovim 0.12 or
+newer; the selected default nightly already meets that requirement.
+
+Mason provisions the native `ruff` server alongside Pyright. Ruff 0.16.10
+was installed for this setup. Ruff reports lint diagnostics automatically
+while Pyright continues handling types, completion, and navigation. Ruff
+uses its normal project/global configuration discovery; no local rule set
+or formatter style is forced here.
+
+| Key | Action |
+| --- | --- |
+| `Space c f` | Format the current Python buffer using Ruff, leaving changes unsaved. |
+
+Which-key labels `Space c` as code. Formatting is manual: no format-on-save,
+automatic lint fixes, or automatic import organization. Ruff formatting is
+selected explicitly rather than asking every attached LSP to format.
+
+## C and C++
+
+`languages/c_cpp.lua` declares one `clangd` server for both `c` and `cpp`
+buffers, including headers detected as either filetype. A shared language
+container avoids declaring the same server twice in the registry.
+The existing Mason setup provisions clangd inside the default `nvim` profile.
+The earlier Mac setup installed clangd 23.1.0; other machines provision their
+own binary. Mason does not replace the system compiler.
+
+`--background-index` enables project-wide navigation and completion.
+`--clang-tidy` enables static-analysis checks. Clangd discovers project
+`.clangd`, `.clang-tidy`, and `.clang-format` configuration; this profile does
+not impose a global formatting style or language standard.
+
+On this Mac, Apple Command Line Tools already provide Clang/Clang++ 21.0.0
+and Make. CMake 4.4.4 and standalone clang-format 23.1.2 were installed with
+Homebrew. The editor uses clangd's built-in clang-format engine, not another
+formatting plugin.
+
+| Key or command | Action |
+| --- | --- |
+| `Space c f` | Format the current C/C++ buffer with clangd, leaving changes unsaved. |
+| `K` | Show native LSP hover information. |
+| `Ctrl-]` | Jump to a definition through native LSP tag navigation. |
+| `:LspClangdSwitchSourceHeader` | Open the matching source or header. |
+
+Formatting remains manual; there is no format-on-save. Python continues using
+Ruff through the same `Space c f` mapping. C/C++ Tree-sitter highlighting and
+Flash's `S` selection use the newly installed `c` and `cpp` parsers.
+
+### Project compilation flags
+
+Clangd needs the project's include paths, defines, and language-standard flags
+for accurate analysis. For a CMake project without an existing root
+`compile_commands.json`, generate and expose its compilation database:
+
+```sh
+cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+ln -s build/compile_commands.json compile_commands.json
+cmake --build build
+```
+
+Keep source paths consistent when generating the database, particularly when
+working through directory symlinks. Set C and C++ standards independently in
+the project's build configuration; do not apply a global C++ flag to C files.
+The smoke project used C17 and C++20, built both executables, and exercised
+standard headers, cross-file navigation, completion, diagnostics, and formatting
+in an isolated `nvim-own` TUI.
+
+## Notebook experiment — removed
+
+The Molten/Jupytext experiment was retired at the user's request on 2026-10-05.
+There are no notebook plugins, notebook keymaps, cell helpers, Python-host
+overrides, or notebook image settings in the current profile. The experiment's
+tmux graphics setting was also removed; normal editor and language features remain.
+
+[Historical checkpoint and retirement record](checkpoint-2026-10-05.md) preserve
+the exact stack and versions, attempts, observed successes, export failure,
+verification limits, original-notebook hashes, and cross-machine cleanup checklist.
+Execution and saved-output import worked on Mac notebook copies, but saving fresh
+results back into `.ipynb` failed. This was not a completed round-trip workflow.
+
+The rollback was applied and smoke-checked on Linux. Notebook runtime artifacts
+were absent there. Mac packages and generated runtime files were installed outside
+Git and are not claimed to be uninstalled; their remaining cleanup is documented
+in the historical record. Notebook development is not an active roadmap item.
+

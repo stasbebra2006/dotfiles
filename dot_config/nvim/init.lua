@@ -1,8 +1,20 @@
 if vim.g.vscode then
-  -- VS Code has a separate lightweight configuration and skips LazyVim startup.
   require("config.vscode")
   return
 end
 
--- Bootstrap lazy.nvim before importing LazyVim and local plugin specifications.
+-- Keep the learning profile's startup sequence explicit.
+-- Set the leader before any loaded module can define leader mappings.
+vim.g.mapleader = " "
+
+-- === Native editor behavior ===
+require("config.options")
+require("config.diagnostics")
+require("config.keymaps")
+
+-- Native local theme; picker selections do not change this startup default.
+vim.cmd.colorscheme("mocha-custom")
+
+-- === Plugins and language tooling ===
+-- The eager LSP plugin spec connects language declarations after its dependencies load.
 require("config.lazy")

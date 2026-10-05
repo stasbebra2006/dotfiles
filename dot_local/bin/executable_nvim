@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Run the default configuration, honoring an explicitly selected NVIM_APPNAME.
+# Run the selected nightly core and forward every argument.
+exec "$HOME/.local/opt/nvim-unstable" "$@"

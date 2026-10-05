@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""Preserve both profiles before chezmoi deploys their renamed configurations."""
+import os
+from pathlib import Path
+import re
+
+home = Path({{ .chezmoi.homeDir | toJson }})
+config = home / ".config"
+if (config / "nvim-own").is_dir() or (config / "nvim/lazyvim.json").is_file():
+    roots = [
+        config,
+        Path(os.environ.get("XDG_DATA_HOME", home / ".local/share")),
+        Path(os.environ.get("XDG_STATE_HOME", home / ".local/state")),
+        Path(os.environ.get("XDG_CACHE_HOME", home / ".cache")),
+    ]
+    moves = []
+    for root in roots:
+        old_lazy = root / "nvim"
+        new_lazy = root / "lazy-nvim"
+        old_base = root / "nvim-own"
+        if old_lazy.exists() or old_lazy.is_symlink():
+            if new_lazy.exists() or new_lazy.is_symlink():
+                raise SystemExit(f"Refusing to overwrite existing profile: {new_lazy}")
+            moves.append((old_lazy, new_lazy))
+        if old_base.exists() or old_base.is_symlink():
+            moves.append((old_base, root / "nvim"))
+
+    # Session files may contain absolute, home-relative, or source-relative paths.
+    # Replace both old names in one pass so the new base is not renamed again.
+    replacements = {
+        "dot_config/nvim-own": "dot_config/nvim",
+        "dot_config/nvim": "dot_config/lazy-nvim",
+        "docs/nvim-own": "docs/nvim",
+    }
+    for root in roots:
+        prefixes = [str(root)]
+        if root.is_relative_to(home):
+            prefixes.append("~/" + str(root.relative_to(home)))
+        for prefix in prefixes:
+            replacements[prefix + "/nvim-own"] = prefix + "/nvim"
+            replacements[prefix + "/nvim"] = prefix + "/lazy-nvim"
+    pattern = re.compile(
+        "|".join(re.escape(path) + r"(?=/|\s|$)" for path in sorted(replacements, key=len, reverse=True))
+    )
+    encoded = {old.replace("/", "%"): new.replace("/", "%") for old, new in replacements.items()}
+    name_pattern = re.compile(
+        "|".join(re.escape(path) + r"(?=%|$)" for path in sorted(encoded, key=len, reverse=True))
+    )
+    sessions = []
+    session_targets = set()
+    retired_names = []
+    for old, new in moves:
+        for path in old.glob("sessions/**/*.vim"):
+            original = path.read_bytes()
+            updated = pattern.sub(lambda match: replacements[match.group()], original.decode("utf-8")).encode("utf-8")
+            name = name_pattern.sub(lambda match: encoded[match.group()], path.stem) + path.suffix
+            old_path = new / path.relative_to(old)
+            new_path = old_path.with_name(name)
+            if new_path in session_targets:
+                raise SystemExit(f"Refusing to overwrite saved session: {new_path}")
+            session_targets.add(new_path)
+            if new_path != old_path:
+                retired_names.append(old_path)
+            if updated != original or new_path != old_path:
+                sessions.append((new_path, updated))
+
+    completed = []
+    try:
+        for old, new in moves:
+            old.rename(new)
+            completed.append((old, new))
+            print(f"Moved {old} -> {new}")
+    except OSError:
+        for old, new in reversed(completed):
+            new.rename(old)
+        raise
+    for path, content in sessions:
+        path.write_bytes(content)
+        print(f"Updated saved session paths: {path}")
+    for path in retired_names:
+        if path not in session_targets:
+            path.unlink()

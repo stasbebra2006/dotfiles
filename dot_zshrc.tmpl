@@ -16,7 +16,7 @@ zstyle ':completion:*' matcher-list '' \
   'l:|=* r:|=*'
 
 # --- User binaries ---
-# Prepend ~/.local/bin directly so user executables (such as nvim-own) are
+# Prepend ~/.local/bin directly so user executables (such as nvim and lazy-nvim) are
 # indexed cleanly for zsh completion without paths containing '..'.
 if [[ -d "$HOME/.local/bin" && ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
   export PATH="$HOME/.local/bin:$PATH"

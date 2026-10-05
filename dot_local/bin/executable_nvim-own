@@ -1,6 +1,0 @@
-#!/bin/sh
-
-# Use ~/.config/nvim-own and matching isolated data, state, and cache directories.
-export NVIM_APPNAME=nvim-own
-# Run the selected nightly core and forward every argument.
-exec "$HOME/.local/opt/nvim-unstable" "$@"
