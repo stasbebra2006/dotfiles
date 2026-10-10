@@ -11,6 +11,7 @@ vim.g.mapleader = " "
 require("config.options")
 require("config.diagnostics")
 require("config.keymaps")
+require("config.autocmds")
 
 -- Native local theme; picker selections do not change this startup default.
 vim.cmd.colorscheme("mocha-custom")

@@ -1,124 +1,80 @@
 # nvim: troubleshooting
 
-[Project guide](README.md) · [Decisions](decisions.md) ·
-[Directions](roadmap.md)
+[Setup and usage](README.md)
 
-This file records verified, non-obvious behavior that would otherwise be easy to
-rediscover or answer incorrectly from outdated documentation. Keep entries
-version-scoped and separate observed facts from explanations.
+## Check the active profile and version
 
-The dated observations below preserve the old `nvim-own` base and ordinary
-LazyVim names. Current launchers are `nvim` (native / VS Code base) and
-`lazy-nvim` (LazyVim); source roots are `dot_config/nvim/` and
-`dot_config/lazy-nvim/`. Historical output paths are not current instructions.
-
-## Before trusting a remembered command
-
-Neovim and plugin commands change. Check the executable used by the active
-profile, then consult that version's help and command registry:
+`nvim` uses the selected nightly at `~/.local/opt/nvim-unstable`.
+`lazy-nvim` uses the system/Homebrew core and its own configuration and plugins.
+Check the actual versions before following version-sensitive commands:
 
 ```sh
 nvim --version
 lazy-nvim --version
 ```
 
+Inside the affected editor:
+
 ```vim
+:echo stdpath('config')
+:echo stdpath('data')
 :help :lsp-restart
 :echo exists(':lsp')
 :echo exists(':LspRestart')
 ```
 
-Use installed plugin source when local help and external examples disagree.
-Record the tested version, exact command, observed result, and whether the
-explanation was verified or inferred.
+Use the installed version's help and plugin source when examples disagree.
 
-## LSP restart command on Neovim 0.12
+## Profile migration with a scoped apply
 
-Verified on 2026-09-11 with normal `nvim` 0.12.5:
+The one-time migration moves the former LazyVim `nvim` roots to `lazy-nvim`,
+then `nvim-own` to `nvim`, including plugins, state, caches, and saved sessions.
+A scoped apply of configuration files alone does not select the migration script.
+On a machine still using the old names, review and explicitly apply
+`.chezmoiscripts/run_once_before_rename-neovim-profiles.py.tmpl` with
+`chezmoi apply --source-path` before applying the profile files. A full
+`chezmoi apply` includes the before-script automatically.
 
-```vim
-:lsp restart lua_ls
-```
+Preserve live edits and inspect destination collisions first. After moving the
+profiles, review the remaining diff; replacing deliberately moved managed files
+may require confirmation. Restart open editors after saving their work.
 
-`:LspRestart` is the older nvim-lspconfig command and does not exist in this
-profile. The installed nvim-lspconfig compatibility code returns without
-registering its legacy commands when Neovim's built-in `:lsp` command exists.
-Do not recommend `:LspRestart` from memory.
+## VS Code editing plugins are missing
 
-### Restarting is not root rediscovery
+Start native `nvim` and run `:Lazy install`. VS Code reuses the native data
+folder but does not run the plugin manager. Check that `mini.ai`,
+`mini.surround`, and `nvim-treesitter-textobjects` are installed there.
 
-Neovim's built-in restart path starts a replacement client with the existing
-client configuration. It is suitable for restarting a stuck server process, but
-it does not reliably recalculate the project root after adding a root marker such
-as `.luarc.json`.
+The `ds` alias must remap to `gsd`. Calling `MiniSurround.delete()` directly
+bypasses the mapping's input-cache reset and repeat setup.
 
-After adding or changing a root marker, close and reopen Neovim so the new LSP
-client performs root discovery from scratch.
+## Language servers
 
-## LuaLS resolving modules into the wrong Neovim profile
+On the previously tested Neovim 0.12.5 build, the built-in command was
+`:lsp restart <server-name>`; the legacy `:LspRestart` command was absent.
+Check current help rather than assuming either command exists.
 
-### Observed symptom
+Restarting a server reuses its existing configuration. After changing a project
+root marker such as `.luarc.json`, reopen Neovim to rediscover the root.
 
-While normal `nvim` edited
-`dot_config/nvim-own/init.lua`, go-to-definition on:
+Mason installs missing tools asynchronously on first startup. Wait for completion
+and reopen the file if a server did not attach. Inspect `:Mason` and `:MasonLog`
+for failed downloads or missing system dependencies such as `unzip`.
 
-```lua
-require("config.lazy")
-```
+The nightly core was selected after a project-specific Pyright regression:
+Neovim 0.12.5 lost diagnostics after deleting and reopening a buffer, while the
+tested 0.13 development builds retained them. A standalone file did not reproduce
+it. When changing the core, verify diagnostics in a real project, including
+buffer close/reopen and unsaved corrections; those old results do not establish
+the behavior of a newer release.
 
-opened:
+## Lua definitions resolve into the wrong profile
 
-```text
-~/.config/nvim/lua/config/lazy.lua
-```
+The source-only [`.luarc.json`](../../dot_config/nvim/.luarc.json) makes
+`dot_config/nvim/` a LuaLS workspace and resolves modules through `lua/?.lua`
+and `lua/?/init.lua`. For `require("config.lazy")`, go-to-definition should reach
+`dot_config/nvim/lua/config/lazy.lua` in the repository.
 
-instead of:
-
-```text
-~/.local/share/chezmoi/dot_config/nvim-own/lua/config/lazy.lua
-```
-
-The old LuaLS `root_dir` was not captured, so do not claim that the normal live
-configuration was definitely the workspace root. The verified failure was the
-incorrect definition target.
-
-### Why the target was plausible to LuaLS
-
-Normal `nvim` puts `~/.config/nvim/` on its runtime path, and LazyVim's
-`lazydev.nvim` exposes Neovim runtime and plugin libraries to LuaLS. Before the
-local root marker existed, LuaLS knew about the live module
-`~/.config/nvim/lua/config/lazy.lua` but had no project-local rule mapping
-`config.lazy` through `dot_config/nvim-own/lua/`.
-
-Chezmoi's `dot_config/nvim-own` name has no special meaning to LuaLS.
-
-### Fix
-
-The source-only [`.luarc.json`](../../dot_config/nvim/.luarc.json) now makes
-`dot_config/nvim/` a LuaLS root and defines Neovim-style module paths:
-
-```json
-{
-  "runtime.version": "LuaJIT",
-  "runtime.path": [
-    "lua/?.lua",
-    "lua/?/init.lua"
-  ],
-  "workspace.checkThirdParty": false
-}
-```
-
-For `require("config.lazy")`, `lua/?.lua` maps `config.lazy` to
-`lua/config/lazy.lua` under that root.
-
-The literal hidden file is repository tooling: Git can retain it, but chezmoi
-does not manage or deploy it to `~/.config/nvim/`.
-
-### Verification
-
-After reopening normal Neovim, an actual definition request returned:
-
-```text
-root=/home/stasbebra2006/.local/share/chezmoi/dot_config/nvim-own
-definition=/home/stasbebra2006/.local/share/chezmoi/dot_config/nvim-own/lua/config/lazy.lua
-```
+If it instead opens a deployed file under `~/.config/`, check the language
+server's root and reopen the editor after fixing the root marker. The literal
+`.luarc.json` is repository tooling and is not deployed by chezmoi.

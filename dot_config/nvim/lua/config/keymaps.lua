@@ -4,7 +4,32 @@ vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Go to lower window" })
 vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Go to upper window" })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
 
+-- Clear search highlighting while preserving Escape's normal behavior.
+vim.keymap.set({ "n", "i", "s" }, "<Esc>", "<Cmd>nohlsearch<CR><Esc>", {
+  desc = "Escape and clear search highlighting",
+})
+
 -- Resolve plugin modules only when a mapping runs, after lazy.nvim has loaded them.
+vim.keymap.set("n", "<leader>ao", function()
+  require("snacks").terminal.toggle({ "env", "-u", "NO_COLOR", "omp" }, {
+    cwd = vim.fn.getcwd(),
+    win = {
+      position = "float",
+      width = 0.9,
+      height = 0.85,
+      border = "rounded",
+      title = " OMP ",
+      title_pos = "center",
+      keys = {
+        term_normal = false,
+        hide_omp = { "<Esc>", "hide", mode = { "n", "t" }, desc = "Hide OMP" },
+      },
+    },
+  })
+end, { desc = "Toggle Oh My Pi" })
+
+vim.keymap.set("n", "ds", "gsd", { remap = true, desc = "Delete surrounding" })
+
 vim.keymap.set({ "n", "x", "o" }, "s", function()
   require("flash").jump()
 end, { desc = "Flash" })

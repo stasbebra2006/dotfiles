@@ -15,6 +15,10 @@ remain short.
 Do not pre-create layers. Add or extend one only when a real feature needs it,
 and keep one source of truth for each behavior.
 
+Add which-key groups when their first mappings exist, retaining native key
+families such as `gr`, `gs`, `[` and `]`. Each language module owns its server
+declarations; the registry validates ownership and `config.lsp` activates them.
+
 ## How we work
 
 - Before implementing a learning step, explain the immediate problem and exact
@@ -31,22 +35,12 @@ and keep one source of truth for each behavior.
   never refresh a file at the cost of unsaved work.
 - Keep authored changes in chezmoi source. Applying, committing, and pushing are
   separate actions, performed only when requested.
-- When a real need exposes a topic, consult the relevant notes and current
+- When a real need exposes a topic, consult the current configuration and
   sources, compare meaningful options, and agree on the implementation before
   editing.
 
-## Working references
-
-- [Upstream notes](notes.md): revision-scoped Kickstart and LazyVim findings.
-- [Directions](roadmap.md): possible work, without commitment or order.
-- [Decisions](decisions.md): accepted choices and their rationale.
-- [Diagnostic history](diagnostics.md): the investigation that motivated the
-  nightly core.
-- [Troubleshooting](troubleshooting.md): verified version-sensitive commands
-  and operational gotchas.
-- [Latest checkpoint](checkpoint-2026-10-05.md#session-wrap-2026-10-05-2031-cest):
-  profile migration, unchanged Code integration, and the shared-plugin plan
-  that remains to be agreed on and implemented.
+See [Troubleshooting](troubleshooting.md) for version checks, profile migration,
+and language-server issues. Earlier session records are available in Git history.
 
 ## Profiles and files
 
@@ -59,16 +53,19 @@ selected named profile remains honored. The
 
 The selected nightly core is installed manually outside the system package
 manager; each machine needs its own `~/.local/opt/nvim-unstable` binary or symlink.
-Historically, on 2026-09-11, that symlink selected
-`0.13.0-dev-1558+g8d5ebdf986` from the checksum-verified official nightly archive
-at `~/.local/opt/nvim-0.13-nightly-8d5ebdf986/`, while ordinary `nvim` selected
-pacman's stable 0.12.5. Those are historical observations, not current versions.
 
 | Profile | Authored source | Live configuration | Data | State / cache |
 | --- | --- | --- | --- | --- |
 | Default native / VS Code base | `dot_config/nvim/` | `~/.config/nvim/` | `~/.local/share/nvim/` | `~/.local/state/nvim/`, `~/.cache/nvim/` |
 | LazyVim | `dot_config/lazy-nvim/` | `~/.config/lazy-nvim/` | `~/.local/share/lazy-nvim/` | `~/.local/state/lazy-nvim/`, `~/.cache/lazy-nvim/` |
 | Kickstart comparison | `dot_config/nvim-kickstart/` | `~/.config/nvim-kickstart/` | `~/.local/share/nvim-kickstart/` | `~/.local/state/nvim-kickstart/`, `~/.cache/nvim-kickstart/` |
+
+Use these authored profiles and local help for comparisons. The installed
+LazyVim framework is under `~/.local/share/lazy-nvim/lazy/LazyVim/`; its authored
+lockfile records its revision. The Kickstart source snapshot is revision
+`748f67f49dd9fed47686d1d15e8566d2cba8ed35`, imported on 2026-09-09. Refresh
+reference profiles deliberately and edit chezmoi source rather than downloaded
+plugin files.
 
 The base live `lazy-lock.json` is not managed in source. `docs/nvim/` is
 repository-only and excluded from chezmoi deployment. The source-only
@@ -81,10 +78,18 @@ unchanged through shared Linux/macOS templates. The existing Linux executable
 preference remains `/usr/bin/nvim`.
 
 When `vim.g.vscode` is set, `init.lua` only requires `config.vscode` and returns.
-The host module was moved unchanged from the former LazyVim tree, including its
-keymaps, exported APIs, and optional reuse of already-installed editing plugins.
+The host module retains the former LazyVim integration, including its keymaps,
+exported APIs, and optional reuse of already-installed editing plugins.
 This branch does not bootstrap lazy.nvim or load the native UI/LSP configuration.
 Native Neovim retains its existing startup sequence.
+
+The native plugin index now manages `mini.ai`, `mini.surround`, and
+`nvim-treesitter-textobjects` alongside Flash and Tree-sitter. Start native `nvim`
+once on a fresh machine to install these shared plugins before using VS Code.
+Both hosts use `gs` surround mappings (plus `ds` for delete), `if`/`af` for
+function bodies/definitions, `iu`/`au` for calls, and `i=`/`a=` for assignments.
+The `ds` alias goes through `gsd` so input state and dot-repeat are initialized
+by the plugin's normal mapping.
 
 For comparison, the [Kickstart launcher](../../dot_local/bin/executable_nvim-kickstart.tmpl)
 retains `NVIM_APPNAME=nvim-kickstart` and the system/Homebrew core, isolated from
@@ -124,12 +129,15 @@ and the local colorscheme, then starts the explicit plugin graph:
 | `plugins.colorscheme` | Install and configure optional Tokyo Night and Catppuccin themes. |
 | `plugins.blink` | Provide insert-mode completion from LSP, file paths, and buffer words. |
 | `plugins.flash` | Provide labeled jumps, remote operators, and Tree-sitter selections. |
+| `plugins.mini_ai` | Provide inside/around textobjects using the same function, call, subword, and assignment definitions as VS Code. |
+| `plugins.mini_surround` | Add, delete, and replace surroundings with `gs` mappings; `ds` also deletes surroundings. |
 | `plugins.snacks` | Provide the persistent file sidebar, startup dashboard, and search pickers. |
 | `plugins.bufferline` | Display file buffers as tabs and close them without disrupting splits. |
 | `plugins.lualine` | Render the global statusline with colors derived from the active theme. |
 | `plugins.noice` | Render centered command popups and messages without reserving a bottom command row. |
 | `plugins.persistence` | Save file workspaces on exit and restore them only when requested. |
 | `plugins.treesitter` | Install the pinned Python, C, and C++ grammars and enable native Tree-sitter highlighting. |
+| `plugins.treesitter_textobjects` | Supply language-specific textobject queries consumed by mini.ai. |
 | `plugins.lsp` | Provision declared servers through Mason, then invoke the runtime connector. |
 | `config.lsp` | Configure and explicitly enable every declared server. |
 
@@ -339,11 +347,10 @@ Tree-sitter highlighter. This does not enable Tree-sitter indentation or change
 editing options.
 
 Building the parsers requires a C compiler, `curl`, `tar`, and tree-sitter CLI
-0.26.1 or newer. This Mac has CLI 0.27.0. The plugin requires Neovim 0.12 or
+0.26.1 or newer. The plugin requires Neovim 0.12 or
 newer; the selected default nightly already meets that requirement.
 
-Mason provisions the native `ruff` server alongside Pyright. Ruff 0.16.10
-was installed for this setup. Ruff reports lint diagnostics automatically
+Mason provisions the native `ruff` server alongside Pyright. Ruff reports lint diagnostics automatically
 while Pyright continues handling types, completion, and navigation. Ruff
 uses its normal project/global configuration discovery; no local rule set
 or formatter style is forced here.
@@ -362,18 +369,15 @@ selected explicitly rather than asking every attached LSP to format.
 buffers, including headers detected as either filetype. A shared language
 container avoids declaring the same server twice in the registry.
 The existing Mason setup provisions clangd inside the default `nvim` profile.
-The earlier Mac setup installed clangd 23.1.0; other machines provision their
-own binary. Mason does not replace the system compiler.
+Each machine provisions its own binary; Mason does not replace the system compiler.
 
 `--background-index` enables project-wide navigation and completion.
 `--clang-tidy` enables static-analysis checks. Clangd discovers project
 `.clangd`, `.clang-tidy`, and `.clang-format` configuration; this profile does
 not impose a global formatting style or language standard.
 
-On this Mac, Apple Command Line Tools already provide Clang/Clang++ 21.0.0
-and Make. CMake 4.4.4 and standalone clang-format 23.1.2 were installed with
-Homebrew. The editor uses clangd's built-in clang-format engine, not another
-formatting plugin.
+C/C++ projects also need a system compiler and their build tools. The editor
+uses clangd's built-in clang-format engine for formatting.
 
 | Key or command | Action |
 | --- | --- |
@@ -401,25 +405,10 @@ cmake --build build
 Keep source paths consistent when generating the database, particularly when
 working through directory symlinks. Set C and C++ standards independently in
 the project's build configuration; do not apply a global C++ flag to C files.
-The smoke project used C17 and C++20, built both executables, and exercised
-standard headers, cross-file navigation, completion, diagnostics, and formatting
-in an isolated `nvim-own` TUI.
 
-## Notebook experiment — removed
+## Notebook support
 
-The Molten/Jupytext experiment was retired at the user's request on 2026-10-05.
-There are no notebook plugins, notebook keymaps, cell helpers, Python-host
-overrides, or notebook image settings in the current profile. The experiment's
-tmux graphics setting was also removed; normal editor and language features remain.
-
-[Historical checkpoint and retirement record](checkpoint-2026-10-05.md) preserve
-the exact stack and versions, attempts, observed successes, export failure,
-verification limits, original-notebook hashes, and cross-machine cleanup checklist.
-Execution and saved-output import worked on Mac notebook copies, but saving fresh
-results back into `.ipynb` failed. This was not a completed round-trip workflow.
-
-The rollback was applied and smoke-checked on Linux. Notebook runtime artifacts
-were absent there. Mac packages and generated runtime files were installed outside
-Git and are not claimed to be uninstalled; their remaining cleanup is documented
-in the historical record. Notebook development is not an active roadmap item.
-
+Native Molten/Jupytext integration is retired. VS Code's existing notebook
+integration and separately installed Python environments are independent of
+this native configuration. Reintroducing native notebook support requires a new
+request.

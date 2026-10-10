@@ -119,7 +119,7 @@ if vim.uv.fs_stat(surround_path) then
     mini_surround._vscode_escape_capture_wrapped = true
   end
 
-  vim.keymap.set("n", "ds", mini_surround.delete, { desc = "Delete surrounding" })
+  vim.keymap.set("n", "ds", "gsd", { remap = true, desc = "Delete surrounding" })
 end
 
 local treesitter_path = vim.fn.stdpath("data") .. "/lazy/nvim-treesitter"

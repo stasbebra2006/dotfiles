@@ -6,6 +6,8 @@ return {
     require("which-key").setup({
       preset = "helix",
       spec = {
+        { "gs", group = "surround" },
+        { "<leader>a", group = "agents" },
         { "<leader>f", group = "find" },
         { "<leader>b", group = "buffers" },
         { "<leader>q", group = "sessions" },
