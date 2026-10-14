@@ -58,6 +58,18 @@ vim.keymap.set("n", "<leader>fg", function()
   require("snacks").picker.grep({ cwd = vim.fn.getcwd() })
 end, { desc = "Search project text" })
 
+vim.keymap.set("n", "<leader>sb", function()
+  require("snacks").picker.lines()
+end, { desc = "Search current file" })
+
+vim.keymap.set("n", "<leader>ss", function()
+  require("snacks").picker.lsp_symbols()
+end, { desc = "LSP Symbols" })
+
+vim.keymap.set("n", "<leader>sS", function()
+  require("snacks").picker.lsp_workspace_symbols()
+end, { desc = "LSP Workspace Symbols" })
+
 vim.keymap.set("n", "<leader>uC", function()
   require("snacks").picker.colorschemes()
 end, { desc = "Colorschemes" })

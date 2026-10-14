@@ -9,6 +9,7 @@ return {
         { "gs", group = "surround" },
         { "<leader>a", group = "agents" },
         { "<leader>f", group = "find" },
+        { "<leader>s", group = "search" },
         { "<leader>b", group = "buffers" },
         { "<leader>q", group = "sessions" },
         { "<leader>c", group = "code" },

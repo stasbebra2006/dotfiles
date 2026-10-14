@@ -1,4 +1,4 @@
--- Enable only the navigation features used by this profile.
+-- Native navigation and visual guides for this profile.
 return {
   "folke/snacks.nvim",
   version = "v2.31.0",
@@ -11,10 +11,22 @@ return {
     require("snacks").setup({
       -- The default explorer is a persistent left sidebar and replaces netrw.
       explorer = { enabled = true },
+      -- Match LazyVim's indent guides and animated current-block highlight.
+      indent = { enabled = true },
       picker = {
         enabled = true,
         sources = {
           explorer = {
+            actions = {
+              explorer_yank = function(picker)
+                -- Snacks writes registers directly without TextYankPost.
+                require("snacks.explorer.actions").actions.explorer_yank(picker)
+                local register = vim.v.register
+                if register ~= "_" then
+                  vim.fn.setreg("+", vim.fn.getreg(register, 1, true), vim.fn.getregtype(register))
+                end
+              end,
+            },
             win = {
               -- In normal mode, inherit the global Ctrl-j/k window mappings.
               list = { keys = { ["<c-j>"] = false, ["<c-k>"] = false } },

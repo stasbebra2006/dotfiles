@@ -363,6 +363,20 @@ vim.keymap.set({ "n", "x", "o" }, "<esc>", function()
 end, { expr = true, desc = "Escape and clear Flash/search highlights" })
 
 -- === VS Code keymaps ===
+-- Discard deleted/replaced text so only explicit yanks update the registers.
+-- The black-hole register also bypasses the shared system clipboard.
+for _, key in ipairs({ "d", "D", "c", "C", "x", "X" }) do
+  vim.keymap.set({ "n", "x" }, key, '"_' .. key, { desc = "Edit without yanking" })
+end
+vim.keymap.set({ "n", "x" }, "<Del>", '"_x', { desc = "Delete without yanking" })
+if not has_flash then
+  for _, key in ipairs({ "s", "S" }) do
+    vim.keymap.set({ "n", "x" }, key, '"_' .. key, { desc = "Substitute without yanking" })
+  end
+  vim.keymap.set("x", "R", '"_R', { desc = "Replace selection without yanking" })
+end
+vim.keymap.set("x", "p", "P", { desc = "Paste without replacing yank" })
+
 -- --- Search and explorer ---
 vim.keymap.set({ "n", "x" }, "<leader><space>", action("workbench.action.quickOpen"), { desc = "Find Files" })
 vim.keymap.set({ "n", "x" }, "<leader>ff", action("workbench.action.quickOpen"), { desc = "Find Files" })

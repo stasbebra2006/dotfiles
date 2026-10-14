@@ -1,10 +1,10 @@
 -- Control diagnostic rendering only; LSP clients still own diagnostic production.
--- Virtual lines are the current deliberate preference over virtual text.
+-- Show diagnostic messages beside the code on the same line.
 vim.diagnostic.config({
   underline = true,
   update_in_insert = false,
-  virtual_text = false,
-  virtual_lines = true,
+  virtual_text = true,
+  virtual_lines = false,
   severity_sort = true,
   signs = {
     text = {

@@ -1,5 +1,9 @@
 -- Native editor options that do not depend on plugins.
 vim.opt.number = true
+vim.opt.cursorline = true
+vim.opt.cursorlineopt = "both"
+-- Copy explicit yanks separately so deletes and changes stay local to Vim.
+vim.opt.clipboard = ""
 -- Share the statusline across splits instead of giving the sidebar its own.
 vim.opt.laststatus = 3
 
