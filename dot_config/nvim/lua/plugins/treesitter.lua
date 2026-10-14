@@ -1,4 +1,5 @@
-local parsers = { "python", "c", "cpp" }
+-- Code buffers plus the regular expressions and shell commands shown by Noice.
+local parsers = { "python", "c", "cpp", "regex", "bash" }
 
 -- Use the maintained API and freeze the parser/query revision with the plugin.
 return {
@@ -14,9 +15,11 @@ return {
     )
   end,
   config = function()
+    -- Provision newly declared grammars even when the pinned plugin is unchanged.
+    require("nvim-treesitter").install(parsers)
     vim.api.nvim_create_autocmd("FileType", {
       group = vim.api.nvim_create_augroup("NvimTreesitter", { clear = true }),
-      pattern = parsers,
+      pattern = { "python", "c", "cpp" },
       callback = function(event)
         vim.treesitter.start(event.buf)
       end,

@@ -96,6 +96,10 @@ vim.keymap.set("n", "<leader>qd", function()
   require("persistence").stop()
 end, { desc = "Don't save current session" })
 
+vim.keymap.set("n", "<leader>cd", function()
+  vim.diagnostic.open_float({ scope = "line" })
+end, { desc = "Line Diagnostics" })
+
 vim.keymap.set("n", "<leader>cf", function()
   -- Select only the language-owned formatters; do not write or run lint fixes.
   vim.lsp.buf.format({

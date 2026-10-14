@@ -2,6 +2,10 @@
 vim.opt.number = true
 vim.opt.cursorline = true
 vim.opt.cursorlineopt = "both"
+-- Keep touchpad gestures granular instead of jumping several lines at once.
+vim.opt.mousescroll = "ver:1,hor:1"
+-- Scroll wrapped text by screen rows rather than whole buffer lines.
+vim.opt.smoothscroll = true
 -- Copy explicit yanks separately so deletes and changes stay local to Vim.
 vim.opt.clipboard = ""
 -- Share the statusline across splits instead of giving the sidebar its own.

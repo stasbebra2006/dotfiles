@@ -80,3 +80,27 @@ if (config / "nvim-own").is_dir() or (config / "nvim/lazyvim.json").is_file():
     for path in retired_names:
         if path not in session_targets:
             path.unlink()
+
+# Tree-sitter installs absolute query links. Moving a profile leaves these
+# pointing at its old name, or at the other profile now occupying that name.
+# Repair only the plugin's generated links; relative targets survive moves.
+data = Path(os.environ.get("XDG_DATA_HOME", home / ".local/share"))
+for profile in ("nvim", "lazy-nvim"):
+    queries = data / profile / "site/queries"
+    plugin_queries = data / profile / "lazy/nvim-treesitter/runtime/queries"
+    if not queries.is_dir():
+        continue
+    for path in queries.iterdir():
+        if not path.is_symlink():
+            continue
+        old_target = path.readlink()
+        generated_targets = {
+            data / name / "lazy/nvim-treesitter/runtime/queries" / path.name
+            for name in ("nvim-own", "nvim", "lazy-nvim")
+        }
+        target = plugin_queries / path.name
+        if old_target in generated_targets and target.is_dir():
+            relative_target = os.path.relpath(target, path.parent)
+            path.unlink()
+            path.symlink_to(relative_target, target_is_directory=True)
+            print(f"Repaired Tree-sitter query link: {path} -> {relative_target}")

@@ -39,6 +39,28 @@ Preserve live edits and inspect destination collisions first. After moving the
 profiles, review the remaining diff; replacing deliberately moved managed files
 may require confirmation. Restart open editors after saving their work.
 
+### Comments or keywords remain uncolored after migration
+
+Tree-sitter needs both a parser and its query files. Its generated query links
+can retain absolute paths under the retired profile name after directories move.
+The migration hook repairs recognized links to each profile's own plugin and
+uses relative targets so later directory moves preserve them. It also repairs
+machines whose profile migration has already completed.
+
+Apply the updated hook:
+
+```sh
+chezmoi apply --source-path .chezmoiscripts/run_once_before_rename-neovim-profiles.py.tmpl
+```
+
+Then restart highlighting in an open code buffer with
+`:lua vim.treesitter.stop(); vim.treesitter.start()`.
+Use `:checkhealth nvim-treesitter` to confirm the installed languages have valid
+highlight queries, and `:Inspect` on a comment to confirm the `@comment` capture.
+The parser manifest includes C, C++, Python, and the regex/bash grammars used by
+Noice's command UI. Startup provisions newly declared parsers asynchronously;
+the build callback refreshes existing grammars when the plugin revision changes.
+
 ## VS Code editing plugins are missing
 
 Start native `nvim` and run `:Lazy install`. VS Code reuses the native data

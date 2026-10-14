@@ -2,6 +2,8 @@
 
 Before taking action in a new session, read this entire file and any applicable repository `AGENTS.md` files. Check the relevant instructions before launching terminals, creating tmux windows, changing configuration, or opening applications. Do not rely on remembered conventions when the current instructions are available.
 
+After fixing a problem, document the symptom, cause, solution, and how the fix was verified, including relevant machine or version differences. Update the project's existing troubleshooting or setup notes; create a concise topic-specific document when needed. Keep dotfile and Neovim fix notes in the chezmoi source repository, such as `docs/nvim/troubleshooting.md`. Keep small fixes brief, extend existing notes, and correct outdated guidance so we gradually build a useful collection of verified fixes without duplicating explanations.
+
 When launching user terminals or tmux from agent tools, remove agent-injected environment overrides such as `NO_COLOR` from the child environment and verify inheritance; a new tmux server retains them for later sessions.
 
 When creating a tmux window, let tmux choose the index according to its active `base-index` setting. Omit `-t` when the current session is appropriate; to select a session explicitly, use `-t 'session-name:'` with the trailing colon and no window index. For example, `tmux new-window -t '0:'` selects session `0` and assigns the window index automatically, while `tmux new-window -t 0` explicitly requests window index `0`. Never force a window index unless the user requests it. This user's tmux configuration starts window and pane numbering at `1`.
