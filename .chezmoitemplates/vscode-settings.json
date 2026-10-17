@@ -252,6 +252,18 @@
             "type": "bindings",
             "bindings": [
                 {
+                    "key": "a",
+                    "name": "Run All Cells",
+                    "type": "command",
+                    "command": "notebook.execute"
+                },
+                {
+                    "key": "c",
+                    "name": "Run Current Cell",
+                    "type": "command",
+                    "command": "notebook.cell.execute"
+                },
+                {
                     "key": "r",
                     "name": "Run Cells Above",
                     "type": "command",
