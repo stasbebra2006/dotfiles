@@ -70,6 +70,23 @@ folder but does not run the plugin manager. Check that `mini.ai`,
 The `ds` alias must remap to `gsd`. Calling `MiniSurround.delete()` directly
 bypasses the mapping's input-cache reset and repeat setup.
 
+## Escape leaves word-search highlights in VS Code notebooks
+
+`*` searches for the cursor word. VS Code normally reserves Normal-mode
+notebook Escape for leaving the cell, so the Neovim Escape mapping never ran
+while only search highlights were visible. The VS Code profile now includes
+`hlsearch` visibility in its existing `neovim.transientActive` context and
+refreshes it after key processing. The first Escape clears highlights; a later
+Escape can leave the cell. The mapping returns `<Cmd>nohlsearch<CR><Esc>` so
+the command runs after expression evaluation, while retaining Flash cleanup.
+
+Verified on Arch Linux on 2026-10-17 with Neovim `0.12.6`: an isolated check
+loaded the VS Code configuration with host calls stubbed, then exercised
+`*`, Escape, `n`, and Escape. Highlighting and notebook Escape capture toggled
+correctly, and the search pattern and buffer text were preserved. Apply
+`~/.config/nvim/lua/config/vscode.lua` and run `Neovim: Restart Extension` to
+load the change in an existing VS Code session.
+
 ## Language servers
 
 On the previously tested Neovim 0.12.5 build, the built-in command was

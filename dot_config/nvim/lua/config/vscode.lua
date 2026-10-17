@@ -11,6 +11,7 @@ local escape_capture = {
   depth = 0,
   flash_visible = false,
   operator_pending = false,
+  search_visible = false,
 }
 local last_escape_capture
 
@@ -19,7 +20,10 @@ local function set_context(name, value)
 end
 
 local function update_escape_capture()
-  local active = escape_capture.depth > 0 or escape_capture.flash_visible or escape_capture.operator_pending
+  local active = escape_capture.depth > 0
+    or escape_capture.flash_visible
+    or escape_capture.operator_pending
+    or escape_capture.search_visible
   if active == last_escape_capture then
     return
   end
@@ -45,6 +49,23 @@ end
 -- Clear context left behind by a previous config reload before installing handlers.
 set_context("neovim.transientActive", false)
 last_escape_capture = false
+
+-- Notebook Esc normally leaves the cell. Capture it while search highlights
+-- are visible, then let the next Esc use the notebook's normal behavior.
+local search_context_pending = false
+local function refresh_search_context()
+  if search_context_pending then
+    return
+  end
+  search_context_pending = true
+  vim.schedule(function()
+    search_context_pending = false
+    escape_capture.search_visible = vim.o.hlsearch and vim.v.hlsearch == 1
+    update_escape_capture()
+  end)
+end
+vim.on_key(refresh_search_context, vim.api.nvim_create_namespace("vscode_search_escape"))
+refresh_search_context()
 
 -- === Optional native plugin reuse ===
 local flash_path = vim.fn.stdpath("data") .. "/lazy/flash.nvim"
@@ -358,8 +379,9 @@ vim.api.nvim_create_autocmd({ "ModeChanged", "BufLeave", "WinLeave", "InsertEnte
 
 vim.keymap.set({ "n", "x", "o" }, "<esc>", function()
   clear_flash()
-  vim.cmd("nohlsearch")
-  return "<esc>"
+  -- nohlsearch inside a Lua callback is restored on return. Execute it as
+  -- mapping input instead, after expression evaluation has finished.
+  return "<Cmd>nohlsearch<CR><Esc>"
 end, { expr = true, desc = "Escape and clear Flash/search highlights" })
 
 -- === VS Code keymaps ===
