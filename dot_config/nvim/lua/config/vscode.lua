@@ -279,6 +279,8 @@ function M.toggle_last_two_editors()
 end
 
 -- === Host options and autocmds ===
+require("config.comments")
+
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 

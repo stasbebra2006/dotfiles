@@ -1,4 +1,6 @@
 -- Native editor options that do not depend on plugins.
+require("config.comments")
+
 vim.opt.number = true
 vim.opt.cursorline = true
 vim.opt.cursorlineopt = "both"

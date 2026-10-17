@@ -131,7 +131,7 @@ and the local colorscheme, then starts the explicit plugin graph:
 | `plugins.flash` | Provide labeled jumps, remote operators, and Tree-sitter selections. |
 | `plugins.mini_ai` | Provide inside/around textobjects using the same function, call, subword, and assignment definitions as VS Code. |
 | `plugins.mini_surround` | Add, delete, and replace surroundings with `gs` mappings; `ds` also deletes surroundings. |
-| `plugins.snacks` | Provide the persistent file sidebar, startup dashboard, and search pickers. |
+| `plugins.snacks` | Provide the persistent file sidebar, startup dashboard, search pickers, and animated scrolling. |
 | `plugins.bufferline` | Display file buffers as tabs and close them without disrupting splits. |
 | `plugins.lualine` | Render the global statusline with colors derived from the active theme. |
 | `plugins.noice` | Render centered command popups and messages without reserving a bottom command row. |
@@ -231,6 +231,10 @@ including `mocha-custom`, and updates them when the colorscheme picker changes i
 and loads it on `VeryLazy`. Press `:` for a centered command popup. Enter
 executes the command, Escape cancels, and Tab uses native command completion.
 The `bottom_search` preset keeps `/` and `?` search input at the bottom.
+
+Snacks input handles `vim.ui.input` prompts, including LSP symbol rename
+(`Space c r`). These open in Insert mode. Escape first enters Normal mode
+for Vim motions; another Escape cancels. Enter confirms in either mode.
 
 Noice handles messages as well as command input. Its UI attachment sets
 `cmdheight` to zero, so the global statusline reaches the bottom edge without

@@ -4,6 +4,19 @@ vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Go to lower window" })
 vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Go to upper window" })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
 
+-- Prevent accidental macro recording from disabling completion and UI hints.
+vim.keymap.set("n", "q", "<Nop>", { desc = "Disable macro recording" })
+
+-- Avoid opening help when F1 is pressed accidentally.
+vim.keymap.set({ "n", "i", "v", "s", "o", "c" }, "<F1>", "<Nop>", { desc = "Disable F1 help" })
+
+-- Plain paste uses the yank-only system clipboard; explicit registers still work.
+for _, key in ipairs({ "p", "P" }) do
+  vim.keymap.set({ "n", "x" }, key, function()
+    return vim.v.register == '"' and ('"+' .. key) or key
+  end, { expr = true, desc = "Paste from clipboard" })
+end
+
 -- Clear search highlighting while preserving Escape's normal behavior.
 vim.keymap.set({ "n", "i", "s" }, "<Esc>", "<Cmd>nohlsearch<CR><Esc>", {
   desc = "Escape and clear search highlighting",
@@ -62,6 +75,25 @@ vim.keymap.set("n", "<leader>sb", function()
   require("snacks").picker.lines()
 end, { desc = "Search current file" })
 
+-- LazyVim-style LSP navigation; descriptions also populate Which-Key.
+vim.keymap.set("n", "gd", function()
+  require("snacks").picker.lsp_definitions()
+end, { desc = "Goto Definition" })
+
+vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "Goto Declaration" })
+
+vim.keymap.set("n", "gr", function()
+  require("snacks").picker.lsp_references()
+end, { desc = "References", nowait = true })
+
+vim.keymap.set("n", "gI", function()
+  require("snacks").picker.lsp_implementations()
+end, { desc = "Goto Implementation" })
+
+vim.keymap.set("n", "gy", function()
+  require("snacks").picker.lsp_type_definitions()
+end, { desc = "Goto Type Definition" })
+
 vim.keymap.set("n", "<leader>ss", function()
   require("snacks").picker.lsp_symbols()
 end, { desc = "LSP Symbols" })
@@ -99,6 +131,8 @@ end, { desc = "Don't save current session" })
 vim.keymap.set("n", "<leader>cd", function()
   vim.diagnostic.open_float({ scope = "line" })
 end, { desc = "Line Diagnostics" })
+
+vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Rename Symbol" })
 
 vim.keymap.set("n", "<leader>cf", function()
   -- Select only the language-owned formatters; do not write or run lint fixes.

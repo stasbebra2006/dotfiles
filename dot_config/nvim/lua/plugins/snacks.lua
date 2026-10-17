@@ -13,6 +13,10 @@ return {
       explorer = { enabled = true },
       -- Match LazyVim's indent guides and animated current-block highlight.
       indent = { enabled = true },
+      -- Editable input buffers: Escape leaves Insert mode before cancelling.
+      input = { enabled = true },
+      -- Animate page and half-page scrolling, as in LazyVim.
+      scroll = { enabled = true },
       picker = {
         enabled = true,
         sources = {
