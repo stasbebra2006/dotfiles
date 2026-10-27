@@ -16,7 +16,9 @@ local escape_capture = {
 local last_escape_capture
 
 local function set_context(name, value)
-  pcall(vscode.call, "setContext", { args = { name, value } }, 1000)
+  -- These callbacks can run while VS Code is waiting for a buffer switch.
+  -- Queue context updates so Neovim can finish that switch first.
+  pcall(vscode.action, "setContext", { args = { name, value } })
 end
 
 local function update_escape_capture()
@@ -175,7 +177,7 @@ end
 -- === VS Code commands and editor MRU ===
 local function action(command)
   return function()
-    vscode.call(command)
+    vscode.action(command)
   end
 end
 
@@ -272,10 +274,14 @@ local function track_editor_mru()
 end
 
 function M.toggle_last_two_editors()
-  local ok, toggled = pcall(vscode.eval, editor_mru_toggle_script, nil, 1000)
-  if not ok or not toggled then
-    vscode.call("workbench.action.openPreviousRecentlyUsedEditor")
-  end
+  -- Opening an editor can itself require Neovim layout synchronization.
+  vscode.eval_async(editor_mru_toggle_script, {
+    callback = function(err, toggled)
+      if err or not toggled then
+        vscode.action("workbench.action.openPreviousRecentlyUsedEditor")
+      end
+    end,
+  })
 end
 
 -- === Host options and autocmds ===
@@ -387,20 +393,6 @@ vim.keymap.set({ "n", "x", "o" }, "<esc>", function()
 end, { expr = true, desc = "Escape and clear Flash/search highlights" })
 
 -- === VS Code keymaps ===
--- Discard deleted/replaced text so only explicit yanks update the registers.
--- The black-hole register also bypasses the shared system clipboard.
-for _, key in ipairs({ "d", "D", "c", "C", "x", "X" }) do
-  vim.keymap.set({ "n", "x" }, key, '"_' .. key, { desc = "Edit without yanking" })
-end
-vim.keymap.set({ "n", "x" }, "<Del>", '"_x', { desc = "Delete without yanking" })
-if not has_flash then
-  for _, key in ipairs({ "s", "S" }) do
-    vim.keymap.set({ "n", "x" }, key, '"_' .. key, { desc = "Substitute without yanking" })
-  end
-  vim.keymap.set("x", "R", '"_R', { desc = "Replace selection without yanking" })
-end
-vim.keymap.set("x", "p", "P", { desc = "Paste without replacing yank" })
-
 -- --- Search and explorer ---
 vim.keymap.set({ "n", "x" }, "<leader><space>", action("workbench.action.quickOpen"), { desc = "Find Files" })
 vim.keymap.set({ "n", "x" }, "<leader>ff", action("workbench.action.quickOpen"), { desc = "Find Files" })

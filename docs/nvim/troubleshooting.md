@@ -155,6 +155,43 @@ correctly, and the search pattern and buffer text were preserved. Apply
 `~/.config/nvim/lua/config/vscode.lua` and run `Neovim: Restart Extension` to
 load the change in an existing VS Code session.
 
+## Normal-mode keys stop moving in a notebook cell
+
+The VS Code Neovim integration can lose synchronization with the active cell.
+On Arch Linux on 2026-10-26, VS Code was editing a six-line cell in lesson 03,
+but Neovim's current buffer was a two-line cell in lesson 02, with its cursor
+on the last line. `j` therefore had nowhere to move in Neovim's stale buffer.
+No macro was recording; the trigger for the synchronization loss is unknown.
+
+After confirming the notebooks were saved, running `Neovim: Restart Extension`
+reattached the active cell without restarting VS Code or changing settings.
+Verified with VS Code Neovim `1.20.0` and its configured system Neovim `0.12.6`:
+the host and Neovim buffer URIs matched afterward, and `j` sent through VS Code's
+`type` command moved both cursors from line 2 to line 3. Document text, version,
+and saved state were unchanged. Re-entering the cell alone had not recovered it.
+
+The custom VS Code profile also made synchronous host calls from Escape-context
+callbacks and command mappings, including the MRU editor toggle. In extension
+`1.20.0`, host actions first wait for cursor updates, which can wait for layout
+synchronization. Waiting on the host while Neovim is handling that same layout
+operation creates a circular-wait risk. This is a plausible contributor; the
+exact trigger of the original incident was not captured.
+
+The profile now queues context and mapped commands with `vscode.action` and
+uses `vscode.eval_async` with a callback for the MRU result/fallback. See the
+[extension's asynchronous API](https://github.com/vscode-neovim/vscode-neovim#vscodeactionname-opts).
+An isolated delayed-host check reproduced a blocking/failing MRU toggle before
+the change; afterward it returned without synchronous calls. Applied the single
+`config/vscode.lua` target and restarted the extension. Live temporary-notebook
+checks passed eight cell switches with `j`, `ciw`, undo, word-search Escape, and
+an MRU toggle round trip. Original notebook text was unchanged and the original
+editor was restored. The existing headless search/Escape checks also passed.
+
+During diagnosis, malformed `nvim_eval_statusline` expressions containing nested
+braces caused `E115`/`E116` messages. Those messages came from the diagnostic
+checks. Inspect Lua state through `nvim_exec_lua` rather than embedding arbitrary
+Lua tables in a `%{...}` statusline expression.
+
 ## Language servers
 
 On the previously tested Neovim 0.12.5 build, the built-in command was
@@ -243,6 +280,18 @@ Neovim's default F1 binding opens help. The native keymaps map F1 to `<Nop>`
 in Normal, Insert, Visual, Select, Operator-pending, and Command-line modes.
 Verified on 2026-10-17: all six live mappings were `<Nop>`, Lua syntax validation
 passed, and the deployed file matched chezmoi source. `:help` remains available.
+
+## VS Code deletes and changes bypass registers
+
+The VS Code profile previously mapped delete/change commands to the black-hole
+register and visual `p` to `P`. On 2026-10-27, removed those overrides at the
+user's request to restore standard register behavior. With `clipboard=unnamedplus`,
+yanks, deletes, changes, and visual replacements also update the system clipboard.
+
+Applied `config/vscode.lua` and cleared only those mappings in the running
+extension without restarting it. An isolated clipboard check verified yank,
+delete, change, the Delete key, and visual replacement. Live mapping inspection
+confirmed the defaults were restored and the current buffer text was unchanged.
 
 ## `p` pastes deleted text even though the system clipboard is preserved
 
