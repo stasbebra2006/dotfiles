@@ -39,8 +39,10 @@ declarations; the registry validates ownership and `config.lsp` activates them.
   sources, compare meaningful options, and agree on the implementation before
   editing.
 
-See [Troubleshooting](troubleshooting.md) for version checks, profile migration,
-and language-server issues. Earlier session records are available in Git history.
+See [Editor troubleshooting](troubleshooting.md) for version checks, profile migration,
+and language-server issues. Other system notes are indexed under
+[troubleshooting](../troubleshooting/README.md). Earlier session records are
+available in Git history.
 
 ## Profiles and files
 
