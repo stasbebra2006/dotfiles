@@ -305,3 +305,61 @@ Verified on 2026-10-17 using an isolated in-memory clipboard provider:
 delete/change then paste, `P`, visual replacement, counted paste, and named
 register paste all passed without changing the clipboard after the yank.
 All four live mappings were loaded, Lua syntax passed, and source matched live.
+
+## Git gutter signs do not appear in a new file
+
+`plugins/gitsigns.lua` configures `signs.untracked = { text = "+" }`, but
+`gitsigns.nvim` defaults `attach_to_untracked` to `false`. For an untracked
+file (never staged with `git add` or committed), `gitsigns` exits early during
+attachment, so no `+`/`~`/`-` gutter signs or buffer-local hunk mappings
+(`]h`, `[h`, `Space g h ...`) are added. `Space g d` (`Snacks.picker.git_diff`)
+likewise excludes untracked files; `Space g s` (`Snacks.picker.git_status`) lists
+them.
+
+To review later edits against a new starter file, run `git add <file>` or
+commit the starter file so Git has a baseline. Setting
+`attach_to_untracked = true` in `plugins/gitsigns.lua` attaches to untracked
+files directly, marking every line as added (`+`).
+
+Checked on Arch Linux on 2026-11-15 with Neovim `0.13.0-dev-1558+g8d5ebdf986`:
+an untracked `sample.cpp` in the running session had only clangd diagnostic
+signs and no `gitsigns` hunks or `]h` mapping; headless `gitsigns` attached to
+a tracked modified file (`added = 8`, 1 hunk) and, when tested with
+`attach_to_untracked = true`, marked all 141 lines of the untracked file as
+added.
+
+## Quickfix review items cannot be deleted with `dd`
+
+Neovim's built-in quickfix and location-list windows (`qf`) are read-only and
+ship without mappings to cross off checked items or close with `q` (`q` is also
+globally mapped to `<Nop>` in `config.keymaps`). `config.autocmds` now registers a
+`FileType` autocmd (`QuickfixActions`) for `qf` buffers mapping Normal `dd`
+(including `[count]dd`) and Visual `d` to remove entries via `getqflist` /
+`setqflist` (or `getloclist` / `setloclist` for location lists) while preserving
+the list title and updating `idx`, plus Normal `q` to run `:cclose` or
+`:lclose`.
+
+Verified on Arch Linux on 2026-11-15 with Neovim `0.13.0-dev-1558+g8d5ebdf986`:
+headless checks confirmed normal buffers kept `q` as `<Nop>` and global `dd`
+unset, while `qf` windows supported `dd`, Visual `Vjd`, `2dd`, `q`, and
+location-list `dd` + `q` with `idx` adjustments and zero errors. Source and
+live `autocmds.lua` matched after `chezmoi apply`.
+
+## Git diff picker and quickfix jump 3 lines before the hunk
+
+By default, `git diff` includes 3 unchanged context lines (`-U3`) before each
+change, and Snacks' diff parser sets `item.pos` to the `@@` hunk header's
+new-file start line. Selecting a hunk in `Space g d` or exporting it to quickfix
+with `Ctrl-q` therefore jumped 1–3 lines above the actual `+`/`~`/`-` change.
+
+`plugins/snacks.lua` now configures `picker.sources.git_diff.transform` to scan
+`item.diff` and adjust `item.pos` (and `item.text`) to the first `+` line or
+the line adjacent to a pure `-` deletion, keeping `item.diff` unchanged so the
+picker preview still shows surrounding context.
+
+Verified on Arch Linux on 2026-11-15 with Neovim `0.13.0-dev-1558+g8d5ebdf986`
+in an isolated Git repository covering addition (`line 9`), modification
+(`line 8`), mid-file deletion (`line 7`), top-of-file deletion (`line 1`), and
+EOF deletion (`line 4`): both `Snacks.picker.git_diff()` items and exported
+quickfix `lnum` entries matched those exact lines, context previews remained
+intact, and `chezmoi` source matched live `plugins/snacks.lua`.

@@ -122,6 +122,7 @@ and the local colorscheme, then starts the explicit plugin graph:
 | Module | Responsibility |
 | --- | --- |
 | `config.options` | Enable line numbers, hide end-of-buffer (`~`) markers, share one global statusline across splits, and define which workspace state sessions save. |
+| `config.autocmds` | Copy explicit yanks to `+`, highlight yanks, and allow `dd`/visual `d`/`q` in quickfix/location windows. |
 | `config.diagnostics` | Show underlines, severity-sorted signs, and virtual lines; defer updates during insert mode. |
 | `config.keymaps` | Map window/file navigation, Flash jumps, buffer operations, session controls, colorscheme selection, and language formatting. |
 | `config.lazy` | Bootstrap lazy.nvim and load the explicit plugin index. |
@@ -134,6 +135,7 @@ and the local colorscheme, then starts the explicit plugin graph:
 | `plugins.mini_ai` | Provide inside/around textobjects using the same function, call, subword, and assignment definitions as VS Code. |
 | `plugins.mini_surround` | Add, delete, and replace surroundings with `gs` mappings; `ds` also deletes surroundings. |
 | `plugins.snacks` | Provide the persistent file sidebar, startup dashboard, search pickers, and animated scrolling. |
+| `plugins.gitsigns` | Show `+`/`~`/`-` Git gutter signs and provide hunk navigation, inline diff preview, and side-by-side diffs. |
 | `plugins.bufferline` | Display file buffers as tabs and close them without disrupting splits. |
 | `plugins.lualine` | Render the global statusline with colors derived from the active theme. |
 | `plugins.noice` | Render centered command popups and messages without reserving a bottom command row. |
@@ -411,6 +413,41 @@ cmake --build build
 Keep source paths consistent when generating the database, particularly when
 working through directory symlinks. Set C and C++ standards independently in
 the project's build configuration; do not apply a global C++ flag to C files.
+
+## Git diffs and hunks
+
+`plugins/gitsigns.lua` pins `lewis6991/gitsigns.nvim` to commit
+`5be654f2232c10ddcad19c1607a67b6b4b78fc29`, which includes the Neovim 0.13
+`diffopt` parsing fix (`45b3180`). It configures explicit `+`, `~`, and `-`
+gutter signs and attaches buffer-local hunk mappings inside Git repositories.
+`config/keymaps.lua` also exposes Snacks' repo-wide Git pickers under
+`Space g` without overriding `gd` (Goto Definition) or `gs` (`mini.surround`).
+`plugins/snacks.lua` also configures `picker.sources.git_diff.transform` so
+jumping from `Space g d` (or exporting hunks to quickfix with `Ctrl-q`) lands
+directly on the first `+`/`~`/`-` line instead of the 3-line context header.
+
+| Key | Action |
+| --- | --- |
+| `Space g d` | Browse all changed Git hunks across the repo with `+-` diff preview. |
+| `Space g s` | Browse Git-changed and untracked files with diff preview. |
+| `]h` / `[h` | Jump to the next / previous changed hunk (`]H` / `[H` for last / first). |
+| `Space g h p` | Preview the hunk's removed/added (`-`/`+`) lines inline above new code. |
+| `Space g h P` | Preview the hunk diff in a floating popup. |
+| `Space g h d` | Open a side-by-side diff against the index (`Space g h D` against `HEAD~1`). |
+| `Space g h s` / `Space g h r` | Stage or reset the current hunk (also works in visual selection). |
+| `Space g h u` | Undo the last `stage_hunk`. |
+| `Space g h S` / `Space g h R` | Stage or reset the entire buffer. |
+| `Space g h b` | Show full Git blame for the current line. |
+
+### Quickfix review checklist
+
+Inside any Snacks picker (`Space g d`, `Space g s`, `Space f g`, `gr`), press
+`Ctrl-q` to send `<Tab>`-selected items (or all items) to Neovim's built-in
+quickfix list. Walk through entries from code buffers with `]q` / `[q` (`]Q` /
+`[Q` for last / first). Inside quickfix or location-list windows (`qf`),
+`config.autocmds` adds `dd` (and `[count]dd` or visual `d`) to cross off
+checked entries and `q` to close the window (`:cclose` / `:lclose`) without
+clearing the list (`:copen` reopens it).
 
 ## Notebook support
 

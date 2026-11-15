@@ -75,6 +75,14 @@ vim.keymap.set("n", "<leader>sb", function()
   require("snacks").picker.lines()
 end, { desc = "Search current file" })
 
+vim.keymap.set("n", "<leader>gd", function()
+  require("snacks").picker.git_diff()
+end, { desc = "Git Diff (hunks)" })
+
+vim.keymap.set("n", "<leader>gs", function()
+  require("snacks").picker.git_status()
+end, { desc = "Git Status" })
+
 -- LazyVim-style LSP navigation; descriptions also populate Which-Key.
 vim.keymap.set("n", "gd", function()
   require("snacks").picker.lsp_definitions()

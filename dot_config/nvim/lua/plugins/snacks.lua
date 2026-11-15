@@ -1,4 +1,29 @@
 -- Native navigation and visual guides for this profile.
+local function first_changed_line(diff_text)
+  local line_nr
+  local saw_delete
+  for line in (diff_text .. "\n"):gmatch("([^\n]*)\n") do
+    if not line_nr then
+      local start = line:match("^@@+.-%+(%d+)")
+      if start then
+        line_nr = tonumber(start)
+      end
+    elseif line:sub(1, 1) == "+" then
+      return math.max(1, line_nr)
+    elseif line:sub(1, 1) == "-" then
+      saw_delete = saw_delete or line_nr
+    elseif line:sub(1, 1) == " " then
+      if saw_delete then
+        return math.max(1, saw_delete - 1)
+      end
+      line_nr = line_nr + 1
+    end
+  end
+  if saw_delete then
+    return math.max(1, saw_delete - 1)
+  end
+end
+
 return {
   "folke/snacks.nvim",
   version = "v2.31.0",
@@ -20,6 +45,18 @@ return {
       picker = {
         enabled = true,
         sources = {
+          git_diff = {
+            -- Jump straight to the first +/-/~ line instead of the 3-line diff context header.
+            transform = function(item)
+              if item.diff then
+                local line = first_changed_line(item.diff)
+                if line then
+                  item.pos = { line, 0 }
+                  item.text = item.file .. ":" .. line
+                end
+              end
+            end,
+          },
           explorer = {
             actions = {
               explorer_yank = function(picker)

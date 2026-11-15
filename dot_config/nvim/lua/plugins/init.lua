@@ -7,6 +7,7 @@ return {
   require("plugins.mini_pairs"),
   require("plugins.mini_surround"),
   require("plugins.snacks"),
+  require("plugins.gitsigns"),
   require("plugins.scrollbar"),
   require("plugins.omp"),
   require("plugins.bufferline"),

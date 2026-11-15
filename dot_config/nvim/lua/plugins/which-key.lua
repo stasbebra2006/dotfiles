@@ -13,6 +13,8 @@ return {
         { "<leader>b", group = "buffers" },
         { "<leader>q", group = "sessions" },
         { "<leader>c", group = "code" },
+        { "<leader>g", group = "git" },
+        { "<leader>gh", group = "hunks" },
         { "<leader>u", group = "ui" },
       },
     })
