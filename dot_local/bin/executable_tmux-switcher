@@ -1,0 +1,379 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Interactive Vim-modal tmux session and window switcher using fzf inside display-popup.
+SELF="${BASH_SOURCE[0]}"
+FZF_COLORS="bg:234,bg+:238,fg:250,fg+:255,hl:109,hl+:152,info:245,prompt:252,pointer:255,marker:255,spinner:245,border:240,header:245,label:252"
+NORM_PROMPT="NORMAL > "
+SEARCH_PROMPT="/ "
+
+short_path() {
+  local path="$1"
+  if [ "$path" = "$HOME" ]; then
+    printf '~'
+  elif [ "$path" = "/" ]; then
+    printf '/'
+  else
+    printf '%s' "${path##*/}"
+  fi
+}
+
+# Read a line from /dev/tty while allowing bare/CSI-u Esc or Ctrl-c/Ctrl-g to cancel (exit 1).
+prompt_line() {
+  local prompt="$1" buf="${2:-}" out_var="$3" raw
+  if command -v python3 >/dev/null 2>&1; then
+    raw="$(python3 - "$prompt" "$buf" <<'PY'
+import os, select, sys, termios, tty
+
+prompt, initial = sys.argv[1], sys.argv[2]
+buf = list(initial)
+fd = os.open("/dev/tty", os.O_RDWR)
+old = termios.tcgetattr(fd)
+
+def redraw():
+    os.write(fd, f"\r\033[K {prompt}{''.join(buf)}".encode())
+
+try:
+    tty.setraw(fd)
+    os.write(fd, f"\r\n {prompt}{''.join(buf)}".encode())
+    while True:
+        b = os.read(fd, 1)
+        if not b:
+            sys.exit(1)
+        if b in (b"\r", b"\n"):
+            os.write(fd, b"\r\n")
+            sys.stdout.write("".join(buf) + ":")
+            sys.exit(0)
+        if b in (b"\x03", b"\x07"):
+            os.write(fd, b"\r\n")
+            sys.exit(1)
+        if b == b"\x1b":
+            if not select.select([fd], [], [], 0.03)[0]:
+                os.write(fd, b"\r\n")
+                sys.exit(1)
+            seq = os.read(fd, 1)
+            if seq in (b"[", b"O"):
+                while select.select([fd], [], [], 0.02)[0]:
+                    nxt = os.read(fd, 1)
+                    if not nxt:
+                        break
+                    seq += nxt
+                    if 65 <= nxt[0] <= 90 or 97 <= nxt[0] <= 122 or nxt == b"~":
+                        break
+            if seq in (b"[27u", b"[27;1u", b"[27;1;27~"):
+                os.write(fd, b"\r\n")
+                sys.exit(1)
+            continue
+        if b in (b"\x7f", b"\x08"):
+            if buf:
+                buf.pop()
+                redraw()
+            continue
+        if b == b"\x15":
+            buf.clear()
+            redraw()
+            continue
+        if b == b"\x17":
+            while buf and buf[-1].isspace():
+                buf.pop()
+            while buf and not buf[-1].isspace():
+                buf.pop()
+            redraw()
+            continue
+        if b[0] >= 0x20:
+            # Read remaining UTF-8 continuation bytes if multi-byte character.
+            need = 0
+            if b[0] >= 0xF0:
+                need = 3
+            elif b[0] >= 0xE0:
+                need = 2
+            elif b[0] >= 0xC0:
+                need = 1
+            while need > 0 and select.select([fd], [], [], 0.02)[0]:
+                b += os.read(fd, 1)
+                need -= 1
+            try:
+                ch = b.decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+            buf.append(ch)
+            os.write(fd, ch.encode("utf-8"))
+finally:
+    termios.tcsetattr(fd, termios.TCSADRAIN, old)
+    os.close(fd)
+PY
+)" || return 1
+    printf -v "$out_var" '%s' "${raw%:}"
+    return 0
+  fi
+
+  local val=""
+  printf '\n %s' "$prompt" >/dev/tty
+  IFS= read -r val </dev/tty || return 1
+  printf -v "$out_var" '%s' "$val"
+}
+
+list_sessions() {
+  local current sep=$'\x1f'
+  current="$(tmux display-message -p '#{session_name}' 2>/dev/null || true)"
+  while IFS="$sep" read -r name note wins path; do
+    local marker="  "
+    [ "$name" = "$current" ] && marker="* "
+    local short
+    short="$(short_path "$path")"
+    local note_part=""
+    [ -n "$note" ] && note_part=" \033[38;5;109m(${note})\033[0m"
+    printf '%s\t%s\033[1m%s\033[0m%b  \033[38;5;245m%sw · %s\033[0m\n' \
+      "$name" "$marker" "$name" "$note_part" "$wins" "$short"
+  done < <(tmux list-sessions -F "#{session_name}${sep}#{@note}${sep}#{session_windows}${sep}#{pane_current_path}")
+}
+
+list_windows() {
+  local sep=$'\x1f'
+  while IFS="$sep" read -r target sess idx wname wlabel plabel path cmd active; do
+    local marker="  "
+    [ "$active" = "1" ] && marker="* "
+    local short
+    short="$(short_path "$path")"
+    local wlabel_part=""
+    [ -n "$wlabel" ] && wlabel_part="\033[38;5;109m:${wlabel}\033[0m"
+    local plabel_part=""
+    [ -n "$plabel" ] && plabel_part=" \033[38;5;109m[${plabel}]\033[0m"
+    local loc_part=""
+    if [ "$wname" != "${short}:${cmd}" ]; then
+      loc_part="  \033[38;5;244m${short} (${cmd})\033[0m"
+    fi
+    printf '%s\t%s\033[1m%s\033[0m  \033[38;5;245m%s:%s\033[0m%b%b%b\n' \
+      "$target" "$marker" "$sess" "$idx" "$wname" "$wlabel_part" "$plabel_part" "$loc_part"
+  done < <(tmux list-windows -a -F "#{session_name}:#{window_index}${sep}#{session_name}${sep}#{window_index}${sep}#{window_name}${sep}#{@wlabel}${sep}#{@label}${sep}#{pane_current_path}${sep}#{pane_current_command}${sep}#{window_active}")
+}
+
+session_id() {
+  tmux list-sessions -F $'#{session_name}\t#{session_id}' | awk -F'\t' -v s="$1" '$1==s{print $2; exit}'
+}
+
+preview_target() {
+  local mode="$1" target="$2" sep=$'\x1f'
+  local sess="${target%%:*}"
+  local sid note=""
+  sid="$(session_id "$sess")"
+  [ -n "$sid" ] && note="$(tmux show-options -vt "$sid" @note 2>/dev/null || true)"
+  printf '\033[1;37mSession:\033[0m %s' "$sess"
+  [ -n "$note" ] && printf '  \033[38;5;109m(%s)\033[0m' "$note"
+  printf '\n'
+
+  if [ "$mode" = "session" ]; then
+    tmux list-panes -s -t "=$sess" -F "#{window_index}${sep}#{window_name}${sep}#{@wlabel}${sep}#{pane_index}${sep}#{@label}${sep}#{pane_current_path}${sep}#{pane_current_command}${sep}#{pane_active}" |
+      while IFS="$sep" read -r wi wn wl pi lbl ppath pcmd pact; do
+        local star=" "
+        [ "$pact" = "1" ] && star="*"
+        local wtxt="" ltxt=""
+        [ -n "$wl" ] && wtxt=":$wl"
+        [ -n "$lbl" ] && ltxt=" [$lbl]"
+        printf ' \033[38;5;245m%s %s:%s%s · p%s%s · %s (%s)\033[0m\n' \
+          "$star" "$wi" "$wn" "$wtxt" "$pi" "$ltxt" "$(short_path "$ppath")" "$pcmd"
+      done
+  else
+    local wlabel=""
+    wlabel="$(tmux show-options -wvt "=$target" @wlabel 2>/dev/null || true)"
+    [ -n "$wlabel" ] && printf '\033[38;5;109mWindow label:\033[0m %s\n' "$wlabel"
+    tmux list-panes -t "=$target" -F "#{pane_index}${sep}#{@label}${sep}#{pane_current_path}${sep}#{pane_current_command}${sep}#{pane_active}" |
+      while IFS="$sep" read -r pi lbl ppath pcmd pact; do
+        local star=" "
+        [ "$pact" = "1" ] && star="*"
+        local ltxt=""
+        [ -n "$lbl" ] && ltxt=" [$lbl]"
+        printf ' \033[38;5;245m%s pane %s%s · %s (%s)\033[0m\n' \
+          "$star" "$pi" "$ltxt" "$(short_path "$ppath")" "$pcmd"
+      done
+  fi
+
+  printf '\033[38;5;238m────────────────────────────────────────────────────────────\033[0m\n'
+  tmux capture-pane -ep -t "=$target" 2>/dev/null || true
+}
+
+create_session() {
+  local name="${1:-}"
+  if [ -z "$name" ]; then
+    prompt_line "New session (Esc cancels): " "" name || return 0
+  fi
+  [ -n "$name" ] || return 0
+  if ! tmux has-session -t "=$name" 2>/dev/null; then
+    tmux new-session -d -s "$name" -c "$PWD"
+  fi
+  tmux switch-client -t "=$name"
+  tmux display-popup -C
+}
+
+rename_session() {
+  local old="${1:-}" new=""
+  [ -n "$old" ] || old="$(tmux display-message -p '#{session_name}')"
+  prompt_line "Rename '$old' (^U clears, Esc cancels): " "$old" new || return 0
+  [ -n "$new" ] && tmux rename-session -t "=$old" "$new" || true
+}
+
+rename_window() {
+  local target="${1:-}" cur new=""
+  [ -n "$target" ] || target="$(tmux display-message -p '#{session_name}:#{window_index}')"
+  cur="$(tmux display-message -p -t "=$target" '#{window_name}' 2>/dev/null || true)"
+  prompt_line "Rename window (^U=auto, Esc cancels): " "$cur" new || return 0
+  if [ -n "$new" ]; then
+    tmux rename-window -t "=$target" "$new"
+  else
+    tmux set-option -w -t "=$target" automatic-rename on
+  fi
+}
+
+edit_plabel() {
+  local pane_id="${1:-}" cur val=""
+  [ -n "$pane_id" ] || pane_id="$(tmux display-message -p '#{pane_id}')"
+  cur="$(tmux show-options -pvt "$pane_id" @label 2>/dev/null || true)"
+  prompt_line "Pane label (^U clears, Esc cancels): " "$cur" val || return 0
+  tmux set-option -p -t "$pane_id" @label "$val"
+  tmux select-pane -t "$pane_id" -T "$val"
+}
+
+edit_tmux_option() {
+  local scope="$1" opt="$2" kind="$3" target="${4:-}" opt_target cur val=""
+  if [ -z "$target" ]; then
+    if [ "$scope" = "w" ]; then
+      target="$(tmux display-message -p '#{session_name}:#{window_index}')"
+    else
+      target="$(tmux display-message -p '#{session_name}')"
+    fi
+  fi
+  if [ "$scope" = "w" ]; then
+    opt_target="=$target"
+  else
+    opt_target="$(session_id "$target")"
+    [ -n "$opt_target" ] || opt_target="$target"
+  fi
+  local flag="${scope:+-$scope}"
+  cur="$(tmux show-options $flag -vt "$opt_target" "$opt" 2>/dev/null || true)"
+  prompt_line "$kind for '$target' (^U clears, Esc cancels): " "$cur" val || return 0
+  tmux set-option $flag -t "$opt_target" "$opt" "$val"
+}
+
+kill_session() {
+  local target="$1"
+  local count current other
+  count="$(tmux list-sessions | wc -l)"
+  if [ "$count" -le 1 ]; then
+    return 0
+  fi
+  current="$(tmux display-message -p '#{session_name}' 2>/dev/null || true)"
+  if [ "$target" = "$current" ]; then
+    other="$(tmux list-sessions -F '#{session_name}' | grep -Fxv "$target" | head -n 1)"
+    [ -n "$other" ] && tmux switch-client -t "=$other"
+  fi
+  tmux kill-session -t "=$target"
+}
+
+search_action() {
+  local norm_keys="$1"
+  if [ "${FZF_MATCH_COUNT:-0}" -eq "${FZF_TOTAL_COUNT:-0}" ]; then
+    printf 'show-input+clear-query+enable-search+unbind(%s)+change-prompt(%s)' "$norm_keys" "$SEARCH_PROMPT"
+  else
+    printf 'show-input+enable-search+unbind(%s)+change-prompt(%s)' "$norm_keys" "$SEARCH_PROMPT"
+  fi
+}
+
+esc_action() {
+  local list_cmd="$1" norm_keys="$2"
+  if [ "${FZF_PROMPT:-}" = "$SEARCH_PROMPT" ]; then
+    printf 'hide-input+disable-search+rebind(%s)+change-prompt(%s)' "$norm_keys" "$NORM_PROMPT"
+  elif [ "${FZF_MATCH_COUNT:-0}" -lt "${FZF_TOTAL_COUNT:-0}" ]; then
+    printf 'enable-search+show-input+clear-query+search()+hide-input+disable-search+reload(%s %s)' "$SELF" "$list_cmd"
+  else
+    printf 'abort'
+  fi
+}
+
+run_picker() {
+  local mode="$1" list_cmd="$2" preview_cmd="$3" header="$4" norm_keys="$5" active_id="$6"
+  shift 6
+  local list_fn="${list_cmd//-/_}"
+  local items pos selected
+  items="$("$list_fn")"
+  pos="$(printf '%s\n' "$items" | cut -f1 | grep -Fxn "$active_id" | head -n1 | cut -d: -f1 || true)"
+  [ -n "$pos" ] || pos=1
+  selected="$(
+    printf '%s\n' "$items" | fzf \
+      --ansi --sync --disabled --no-input --delimiter=$'\t' --with-nth=2.. \
+      --layout=reverse --info=inline --no-scrollbar \
+      --prompt="$NORM_PROMPT" \
+      --header="$header" \
+      --color="$FZF_COLORS" \
+      --preview="$SELF $preview_cmd {1}" \
+      --preview-window='right,54%,border-left,wrap' \
+      --bind="start:pos($pos)" \
+      --bind='j:down,k:up,g:first,G:last,q:abort' \
+      --bind='J:preview-down,K:preview-up,ctrl-d:preview-half-page-down,ctrl-u:preview-half-page-up' \
+      --bind='ctrl-j:down,ctrl-k:up' \
+      --bind="c:enable-search+show-input+clear-query+search()+hide-input+disable-search+reload($SELF $list_cmd)" \
+      --bind="/:transform:$SELF search-action $norm_keys" \
+      --bind="i:transform:$SELF search-action $norm_keys" \
+      --bind="a:transform:$SELF search-action $norm_keys" \
+      --bind="esc:transform:$SELF esc-action $list_cmd $norm_keys" \
+      "$@"
+  )" || exit 0
+  local target="${selected%%$'\t'*}"
+  [ -n "$target" ] && tmux switch-client -t "=$target"
+}
+
+run_sessions() {
+  local norm_keys="j,k,g,G,J,K,q,c,/,i,a,n,e,r,x,d,w"
+  local active_sess
+  active_sess="$(tmux display-message -p '#{session_name}' 2>/dev/null || true)"
+  run_picker \
+    sessions list-sessions preview-session \
+    'j/k move · / search · Enter switch · n new · e note · r rename · x kill · w windows · q quit' \
+    "$norm_keys" "$active_sess" \
+    --bind="n:execute($SELF new-session)+reload($SELF list-sessions)" \
+    --bind="ctrl-n:execute($SELF new-session {q})+reload($SELF list-sessions)" \
+    --bind="e:execute($SELF edit-note {1})+reload($SELF list-sessions)" \
+    --bind="ctrl-e:execute($SELF edit-note {1})+reload($SELF list-sessions)" \
+    --bind="r:execute($SELF rename-session {1})+reload($SELF list-sessions)" \
+    --bind="ctrl-r:execute($SELF rename-session {1})+reload($SELF list-sessions)" \
+    --bind="x:execute-silent($SELF kill-session {1})+reload($SELF list-sessions)" \
+    --bind="d:execute-silent($SELF kill-session {1})+reload($SELF list-sessions)" \
+    --bind="ctrl-x:execute-silent($SELF kill-session {1})+reload($SELF list-sessions)" \
+    --bind="w:become($SELF windows)" \
+    --bind="ctrl-w:become($SELF windows)"
+}
+
+run_windows() {
+  local norm_keys="j,k,g,G,J,K,q,c,/,i,a,e,r,s"
+  local active_win
+  active_win="$(tmux display-message -p '#{session_name}:#{window_index}' 2>/dev/null || true)"
+  run_picker \
+    windows list-windows preview-window \
+    'j/k move · / search · Enter jump · e label · r rename · c clear · s sessions · q quit' \
+    "$norm_keys" "$active_win" \
+    --bind="e:execute($SELF edit-wlabel {1})+reload($SELF list-windows)" \
+    --bind="ctrl-e:execute($SELF edit-wlabel {1})+reload($SELF list-windows)" \
+    --bind="r:execute($SELF rename-window {1})+reload($SELF list-windows)" \
+    --bind="ctrl-r:execute($SELF rename-window {1})+reload($SELF list-windows)" \
+    --bind="s:become($SELF sessions)" \
+    --bind="ctrl-s:become($SELF sessions)"
+}
+
+cmd="${1:-sessions}"
+shift || true
+case "$cmd" in
+  sessions)        run_sessions ;;
+  windows)         run_windows ;;
+  list-sessions)   list_sessions ;;
+  list-windows)    list_windows ;;
+  preview-session) preview_target session "${1:-}" ;;
+  preview-window)  preview_target window "${1:-}" ;;
+  new-session)     create_session "${1:-}" ;;
+  rename-session)  rename_session "${1:-}" ;;
+  rename-window)   rename_window "${1:-}" ;;
+  prompt-plabel)   edit_plabel "${1:-}" ;;
+  prompt-wlabel|edit-wlabel) edit_tmux_option w @wlabel "Window label" "${1:-}" ;;
+  prompt-note|edit-note)     edit_tmux_option "" @note "Note" "${1:-}" ;;
+  kill-session)    kill_session "${1:-}" ;;
+  search-action)   search_action "${1:-}" ;;
+  esc-action)      esc_action "${1:-}" "${2:-}" ;;
+esac
