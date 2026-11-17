@@ -6,7 +6,7 @@ An unresolved investigation is not a verified remedy.
 | Topic | Notes |
 | --- | --- |
 | [Linux audio](linux-audio.md) | HyperX popping, completed experiments, rollback state, and proposed tests; unresolved. |
-| [Gaming on Arch Linux](linux-gaming.md) | Steam/Mesa setup and Valheim FPS drops with Night Light. |
+| [Gaming on Arch Linux](linux-gaming.md) | Steam/Mesa setup, Valheim FPS drops with Night Light, Steam HTTP/2 stalls, Sunshine streaming, and DualSense Bluetooth `vDS` haptics. |
 | [USB wake and suspend](linux-sleep.md) | USB wake policy, saved udev rule, verification, and undo; successful suspend remains unconfirmed. |
 | [KDE panel](kde-panel.md) | Restoring a missing pinned Firefox launcher. |
 | [Zsh history](zsh.md) | Repairing NUL-byte corruption while preserving valid history. |
