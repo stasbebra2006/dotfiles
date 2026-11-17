@@ -256,15 +256,13 @@ edit_tmux_option() {
 
 kill_session() {
   local target="$1"
-  local count current other
-  count="$(tmux list-sessions | wc -l)"
-  if [ "$count" -le 1 ]; then
-    return 0
-  fi
+  local current other
   current="$(tmux display-message -p '#{session_name}' 2>/dev/null || true)"
   if [ "$target" = "$current" ]; then
-    other="$(tmux list-sessions -F '#{session_name}' | grep -Fxv "$target" | head -n 1)"
-    [ -n "$other" ] && tmux switch-client -t "=$other"
+    other="$(tmux list-sessions -F '#{session_name}' | grep -Fxv "$target" | head -n 1 || true)"
+    if [ -n "$other" ]; then
+      tmux switch-client -t "=$other"
+    fi
   fi
   tmux kill-session -t "=$target"
 }
