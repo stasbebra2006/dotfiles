@@ -1,4 +1,6 @@
 theme = Monokai Remastered
+{{- if eq .chezmoi.os "darwin" }}
 
 # Forward Command+S as Ctrl+S for tmux prefix
 keybind = super+s=text:\x13
+{{- end }}

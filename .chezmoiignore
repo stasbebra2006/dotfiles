@@ -9,6 +9,12 @@ docs/
 .agents/skills/fix-brightness
 {{ end }}
 
+# Ghostty uses ~/.config on Linux and ~/Library on macOS.
+{{ if ne .chezmoi.os "linux" }}
+.config/ghostty
+.config/ghostty/**
+{{ end }}
+
 # VS Code uses ~/.config on Linux and ~/Library on macOS.
 {{ if ne .chezmoi.os "linux" }}
 .config/Code
