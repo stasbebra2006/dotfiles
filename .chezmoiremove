@@ -1,7 +1,6 @@
-# Retired TPM and Catppuccin copies; current tmux configuration uses no plugins.
+# Retired Catppuccin and legacy ~/.tmux TPM copies; active plugins live under ~/.config/tmux/plugins.
 .tmux/plugins/tpm
 .tmux/plugins/tmux
-.config/tmux/plugins/tpm
 .config/tmux/plugins/tmux
 
 # Retired Konsole toolbar customization.
