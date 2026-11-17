@@ -10,6 +10,7 @@ An unresolved investigation is not a verified remedy.
 | [USB wake and suspend](linux-sleep.md) | USB wake policy, saved udev rule, verification, and undo; successful suspend remains unconfirmed. |
 | [KDE panel](kde-panel.md) | Restoring a missing pinned Firefox launcher. |
 | [Zsh history](zsh.md) | Repairing NUL-byte corruption while preserving valid history. |
+| [tmux](tmux.md) | Resurrect startup warning, `next-3.9` popup options, switcher session previews, and centered status bar. |
 | [Neovim and VS Code](../nvim/troubleshooting.md) | Editor profiles, highlighting, language servers, notebook synchronization, and key behavior. |
 
 Detailed [research records](research/README.md) retain evidence and experimental

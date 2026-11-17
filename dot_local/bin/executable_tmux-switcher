@@ -157,7 +157,7 @@ preview_target() {
   local sess="${target%%:*}"
   local sid note=""
   sid="$(session_id "$sess")"
-  [ -n "$sid" ] && note="$(tmux show-options -vt "$sid" @note 2>/dev/null || true)"
+  [ -n "$sid" ] && note="$(tmux show-options -qvt "$sid" @note 2>/dev/null || true)"
   printf '\033[1;37mSession:\033[0m %s' "$sess"
   [ -n "$note" ] && printf '  \033[38;5;109m(%s)\033[0m' "$note"
   printf '\n'
@@ -175,7 +175,7 @@ preview_target() {
       done
   else
     local wlabel=""
-    wlabel="$(tmux show-options -wvt "=$target" @wlabel 2>/dev/null || true)"
+    wlabel="$(tmux show-options -qwvt "=$target" @wlabel 2>/dev/null || true)"
     [ -n "$wlabel" ] && printf '\033[38;5;109mWindow label:\033[0m %s\n' "$wlabel"
     tmux list-panes -t "=$target" -F "#{pane_index}${sep}#{@label}${sep}#{pane_current_path}${sep}#{pane_current_command}${sep}#{pane_active}" |
       while IFS="$sep" read -r pi lbl ppath pcmd pact; do
@@ -188,8 +188,10 @@ preview_target() {
       done
   fi
 
+  local capture_target="=$target"
+  [ "$mode" = "session" ] && capture_target="=${target}:"
   printf '\033[38;5;238m────────────────────────────────────────────────────────────\033[0m\n'
-  tmux capture-pane -ep -t "=$target" 2>/dev/null || true
+  tmux capture-pane -ep -t "$capture_target" 2>/dev/null || true
 }
 
 create_session() {
@@ -227,7 +229,7 @@ rename_window() {
 edit_plabel() {
   local pane_id="${1:-}" cur val=""
   [ -n "$pane_id" ] || pane_id="$(tmux display-message -p '#{pane_id}')"
-  cur="$(tmux show-options -pvt "$pane_id" @label 2>/dev/null || true)"
+  cur="$(tmux show-options -qpvt "$pane_id" @label 2>/dev/null || true)"
   prompt_line "Pane label (^U clears, Esc cancels): " "$cur" val || return 0
   tmux set-option -p -t "$pane_id" @label "$val"
   tmux select-pane -t "$pane_id" -T "$val"
@@ -249,7 +251,7 @@ edit_tmux_option() {
     [ -n "$opt_target" ] || opt_target="$target"
   fi
   local flag="${scope:+-$scope}"
-  cur="$(tmux show-options $flag -vt "$opt_target" "$opt" 2>/dev/null || true)"
+  cur="$(tmux show-options $flag -qvt "$opt_target" "$opt" 2>/dev/null || true)"
   prompt_line "$kind for '$target' (^U clears, Esc cancels): " "$cur" val || return 0
   tmux set-option $flag -t "$opt_target" "$opt" "$val"
 }
