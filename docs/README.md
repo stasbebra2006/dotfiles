@@ -9,6 +9,9 @@
 - [Offline HTML + LaTeX study chat viewer](study/latex-html-chat.md): offline
   MathJax SVG bundle setup, Gemini-style appending chat template, and browser
   verification for coursework sessions without a local TeX compiler.
+- [Android phone SSH & Termux setup](android-phone.md): OnePlus 8 Pro Tailscale
+  + Termux SSH access (`ssh phone`), F-Droid package layout, and current
+  capability status.
 
 These notes are repository-only; `docs/` is excluded from chezmoi deployment.
 Recorded versions and device state describe the dated checks, so inspect the

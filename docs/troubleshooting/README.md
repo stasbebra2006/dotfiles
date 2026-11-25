@@ -12,6 +12,7 @@ An unresolved investigation is not a verified remedy.
 | [Zsh history](zsh.md) | Repairing NUL-byte corruption while preserving valid history. |
 | [tmux](tmux.md) | Resurrect startup warning, `next-3.9` popup options, switcher session previews, and centered status bar. |
 | [Neovim and VS Code](../nvim/troubleshooting.md) | Editor profiles, highlighting, language servers, notebook synchronization, and key behavior. |
+| [Termux](termux.md) | First-launch `termux-bootstrap-second-stage.sh` `error=13, Permission denied` on Oplus Android and `dpkg` config prompts. |
 
 Detailed [research records](research/README.md) retain evidence and experimental
 history. Supporting files stay beside their topic; the USB wake rule is in
