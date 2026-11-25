@@ -26,3 +26,13 @@ Learning checkpoints are in `progress.md`. Keep this file for environment setup,
 
 ## Resume access
 First inspect the current tmux pane, then read `progress.md` and address the next coursework question based on live text. Discover the pane rather than assuming the saved pane identifier is still current.
+
+## CTU FIT Solaris server (`fray1.fit.cvut.cz`)
+- Access: `ssh liashsta@fray1.fit.cvut.cz` (Oracle Solaris 11.4 `SunOS 5.11` SPARC, home `/home/stud/liashsta`; authenticated via `~/.ssh/my_github_key`).
+- Startup order: login shell reads `~/.profile` → `/home/.profile.all` (which sets default uncolored `PS1` and sources `~/.bashrc`) → `~/.profile.user`.
+- `tmux-256color` terminfo is installed in `~/.terminfo/t/tmux-256color` and enabled by `TERMINFO="$HOME/.terminfo"` in both `~/.profile.user` and `~/.bashrc` (fixes `clear` under tmux).
+- **Colorful commands fix (2026-11-04):**
+  - *Symptom:* `ls` and `grep` had no color output on `fray1`, and `PS1` was monochrome.
+  - *Cause:* Default `/usr/bin/ls` and `/usr/bin/grep` are Solaris native utilities (`/usr/bin/grep` lacks `--color`; Solaris `/usr/bin/ls --color` emits only `sgr0` reset without ANSI color sequences under the custom `tmux-256color` terminfo/default `LS_COLORS`), and `/home/.profile.all` overwrote `PS1` without color.
+  - *Solution:* Configured `~/.bashrc` and `~/.profile.user` on `fray1` to alias `ls='/usr/gnu/bin/ls --color=auto'` (GNU coreutils 8.27) and `grep='/usr/gnu/bin/grep --color=auto'` (GNU grep 3.1), and exported a green/blue colored `PS1`.
+  - *Verification:* Verified via SSH hex dump (`od -An -tx1`) that `/usr/gnu/bin/ls --color=always` emits `\e[01;34m` / `\e[01;36m` ANSI color sequences on `fray1`. Avoid `tmux send-keys` into an active `fray` pane when the user may be mid-typing; use background `ssh -o BatchMode=yes liashsta@fray1.fit.cvut.cz` instead.

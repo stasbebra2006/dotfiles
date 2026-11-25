@@ -1,6 +1,7 @@
 theme = Monokai Remastered
 {{- if eq .chezmoi.os "darwin" }}
 
-# Forward Command+S as Ctrl+S for tmux prefix
+# Forward Command+S/R as Ctrl+S/R for tmux prefix and resurrect restore
 keybind = super+s=text:\x13
+keybind = super+r=text:\x12
 {{- end }}

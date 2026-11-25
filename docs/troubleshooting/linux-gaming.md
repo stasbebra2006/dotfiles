@@ -188,6 +188,45 @@ are separate state; preserve credentials and pairing data unless deletion
 is intended. Avahi is shared system infrastructure, so check other uses
 before disabling it.
 
+### Stability & FPS tuning (2026-11-19)
+
+Live host setup now uses Sunveil hooks (`~/.config/sunshine/hooks/stream-start.sh` /
+`stream-end.sh`, `DISABLE_PHYSICAL=true`) with `krfb-virtualmonitor` creating
+`Virtual-sunshine-vm` at native `2560x1664@60` (`output_name = Virtual-sunshine-vm`)
+while disabling `DP-2` and `HDMI-A-1`.
+
+- **Symptom:** Streaming *Red Dead Redemption 2* (`2560x1664@60`, HEVC VA-API) to the
+  M4 MacBook Air (Moonlight `6.2.0` over 5 GHz Wi-Fi 6 Ch 56 160 MHz DFS) felt choppy:
+  host sent `42–55 FPS` (`50.9 FPS` avg, `17.4%` frames `>25 ms`, `10%` `>33.3 ms`,
+  `1%` low `26.5 FPS`), Moonlight dropped `1.4–2.4%` frames to client jitter even at
+  `0%` network loss, and burst freezes dropped `583` frames (`196` unrecoverable) in a
+  single session.
+- **Causes:**
+  1. *Host FPS drops:* RDR2 `vSync = 1` + `amdgpu` in `0 BOOTUP_DEFAULT` trapped the
+     RX 9060 XT at `~1,790 MHz` (`72–76 W`, `74–86%` busy); frames slightly over
+     `16.67 ms` stalled to `33.3 ms`, keeping average GPU load below boost threshold.
+  2. *150 Mbps bursts & missing FEC:* `150 Mbps` produced ~218-packet P-frames that
+     truncated at `151+0 < 181` during macOS off-channel Wi-Fi scans and triggered
+     Sunshine `Skipping FEC for abnormally large encoded frame (needed 5–9 FEC blocks)`
+     warnings (with no RFI support on AMD VA-API, each loss cascaded into huge IDR frames).
+  3. *Client pacing & Wi-Fi/BT coex:* Moonlight defaulted to `Vulkan (libplacebo)` +
+     `framepacing = 0` (`7.7–12.8 ms` queue delay, `40%` Moonlight CPU, `26%` M4 GPU),
+     and macOS Bluetooth (`HyperX Cloud III S Wireless` on shared `BCM_4388C2` radio) +
+     AWDL caused a 32 s `btDurAir` `32%` airtime storm (`24/50` beacons received).
+- **Solution:** Disabled RDR2 in-game `vSync` (`vSync = 0`); in Moonlight set
+  **Bitrate = `60 Mbps`**, **Frame Pacing = On**, and **Renderer = `Metal`**
+  (`VideoToolbox (Metal)`). No `gamemode` or `lact` install was needed once VSync was off.
+- **Verification (2026-11-19 live dual-end test):**
+  - *Host (15 s `enp6s0` burst trace):* **`900/900` frames (`60.00 FPS`, every second `60`)**,
+    `0` frames `>33.3 ms` (`max 27.5 ms`), `92` median / `141` max pkts/frame, `0` Sunshine
+    warnings; RX 9060 XT boosted to **`3,184 MHz` avg (`3,220 MHz` max)** at `155 W`,
+    `91%` avg / `97%` max busy, `83°C` junction; host processing dropped `5.3 -> 2.5 ms` avg
+    (`33.3 -> 7.1 ms` max).
+  - *Client & Wi-Fi (13 s concurrent):* `65.0 Mbps` RX, `0` UDP buffer drops, `0` Moonlight
+    unrecoverable frames, `260/260` pings (`0.0%` loss, `p50 4.33 ms`, `p99 8.15 ms`,
+    `max 12.08 ms`); Moonlight queue/render dropped `7.69/0.66 ms -> 0.02/0.09 ms`, M4 GPU
+    `26% -> 14%`, Moonlight CPU `40% -> 28%`.
+
 ## DualSense wireless features over Bluetooth via vDS (updated 2026-11-17)
 
 **Current state (2026-11-17):** **Active (`vds 0.4.0_rc1.dirty-4` installed, awaiting DualSense reconnect after `vdsd` restart)** (`vds_hcd` DKMS module built/signed for `7.2.14-arch1-1`):
