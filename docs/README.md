@@ -4,6 +4,8 @@
   rollback instructions, and unresolved investigations.
 - [Neovim setup and usage](nvim/README.md): profiles, configuration ownership,
   language tools, and editing workflow.
+- [tmux command reference](tmux/README.md): keybindings, switcher controls, and
+  in-tmux cheatsheet popup (`Ctrl-s ?`).
 - [Offline HTML + LaTeX study chat viewer](study/latex-html-chat.md): offline
   MathJax SVG bundle setup, Gemini-style appending chat template, and browser
   verification for coursework sessions without a local TeX compiler.

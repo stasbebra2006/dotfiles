@@ -152,21 +152,54 @@ session_id() {
   tmux list-sessions -F $'#{session_name}\t#{session_id}' | awk -F'\t' -v s="$1" '$1==s{print $2; exit}'
 }
 
+resolve_capture_pane() {
+  local mode="$1" target="$2" sep=$'\x1f'
+  local best="" last="" first=""
+  if [ "$mode" = "session" ]; then
+    while IFS="$sep" read -r pid wact pact plast pfloat; do
+      [ "$pfloat" = "1" ] && continue
+      [ "$wact" = "1" ] || continue
+      if [ "$pact" = "1" ]; then
+        best="$pid"
+        break
+      fi
+      [ "$plast" = "1" ] && [ -z "$last" ] && last="$pid"
+      [ -z "$first" ] && first="$pid"
+    done < <(tmux list-panes -s -t "=$target" -F "#{pane_id}${sep}#{window_active}${sep}#{pane_active}${sep}#{pane_last}${sep}#{pane_floating_flag}" 2>/dev/null || true)
+    printf '%s' "${best:-${last:-${first:-=${target}:}}}"
+  else
+    while IFS="$sep" read -r pid pact plast pfloat; do
+      [ "$pfloat" = "1" ] && continue
+      if [ "$pact" = "1" ]; then
+        best="$pid"
+        break
+      fi
+      [ "$plast" = "1" ] && [ -z "$last" ] && last="$pid"
+      [ -z "$first" ] && first="$pid"
+    done < <(tmux list-panes -t "=$target" -F "#{pane_id}${sep}#{pane_active}${sep}#{pane_last}${sep}#{pane_floating_flag}" 2>/dev/null || true)
+    printf '%s' "${best:-${last:-${first:-=$target}}}"
+  fi
+}
+
 preview_target() {
   local mode="$1" target="$2" sep=$'\x1f'
   local sess="${target%%:*}"
-  local sid note=""
+  local sid note="" capture_target=""
   sid="$(session_id "$sess")"
   [ -n "$sid" ] && note="$(tmux show-options -qvt "$sid" @note 2>/dev/null || true)"
+  capture_target="$(resolve_capture_pane "$mode" "$target")"
   printf '\033[1;37mSession:\033[0m %s' "$sess"
   [ -n "$note" ] && printf '  \033[38;5;109m(%s)\033[0m' "$note"
   printf '\n'
 
   if [ "$mode" = "session" ]; then
-    tmux list-panes -s -t "=$sess" -F "#{window_index}${sep}#{window_name}${sep}#{@wlabel}${sep}#{pane_index}${sep}#{@label}${sep}#{pane_current_path}${sep}#{pane_current_command}${sep}#{pane_active}" |
-      while IFS="$sep" read -r wi wn wl pi lbl ppath pcmd pact; do
+    tmux list-panes -s -t "=$sess" -F "#{pane_id}${sep}#{window_index}${sep}#{window_name}${sep}#{@wlabel}${sep}#{pane_index}${sep}#{@label}${sep}#{pane_current_path}${sep}#{pane_current_command}${sep}#{pane_active}${sep}#{pane_floating_flag}" |
+      while IFS="$sep" read -r pid wi wn wl pi lbl ppath pcmd pact pfloat; do
+        [ "$pfloat" = "1" ] && continue
         local star=" "
-        [ "$pact" = "1" ] && star="*"
+        if [ "$pact" = "1" ] || [ "$pid" = "$capture_target" ]; then
+          star="*"
+        fi
         local wtxt="" ltxt=""
         [ -n "$wl" ] && wtxt=":$wl"
         [ -n "$lbl" ] && ltxt=" [$lbl]"
@@ -177,10 +210,13 @@ preview_target() {
     local wlabel=""
     wlabel="$(tmux show-options -qwvt "=$target" @wlabel 2>/dev/null || true)"
     [ -n "$wlabel" ] && printf '\033[38;5;109mWindow label:\033[0m %s\n' "$wlabel"
-    tmux list-panes -t "=$target" -F "#{pane_index}${sep}#{@label}${sep}#{pane_current_path}${sep}#{pane_current_command}${sep}#{pane_active}" |
-      while IFS="$sep" read -r pi lbl ppath pcmd pact; do
+    tmux list-panes -t "=$target" -F "#{pane_id}${sep}#{pane_index}${sep}#{@label}${sep}#{pane_current_path}${sep}#{pane_current_command}${sep}#{pane_active}${sep}#{pane_floating_flag}" |
+      while IFS="$sep" read -r pid pi lbl ppath pcmd pact pfloat; do
+        [ "$pfloat" = "1" ] && continue
         local star=" "
-        [ "$pact" = "1" ] && star="*"
+        if [ "$pact" = "1" ] || [ "$pid" = "$capture_target" ]; then
+          star="*"
+        fi
         local ltxt=""
         [ -n "$lbl" ] && ltxt=" [$lbl]"
         printf ' \033[38;5;245m%s pane %s%s · %s (%s)\033[0m\n' \
@@ -188,8 +224,6 @@ preview_target() {
       done
   fi
 
-  local capture_target="=$target"
-  [ "$mode" = "session" ] && capture_target="=${target}:"
   printf '\033[38;5;238m────────────────────────────────────────────────────────────\033[0m\n'
   tmux capture-pane -ep -t "$capture_target" 2>/dev/null || true
 }
@@ -228,6 +262,11 @@ rename_window() {
 
 edit_plabel() {
   local pane_id="${1:-}" cur val=""
+  if [ -z "$pane_id" ]; then
+    local cur_win
+    cur_win="$(tmux display-message -p '#{session_name}:#{window_index}' 2>/dev/null || true)"
+    [ -n "$cur_win" ] && pane_id="$(resolve_capture_pane window "$cur_win")"
+  fi
   [ -n "$pane_id" ] || pane_id="$(tmux display-message -p '#{pane_id}')"
   cur="$(tmux show-options -qpvt "$pane_id" @label 2>/dev/null || true)"
   prompt_line "Pane label (^U clears, Esc cancels): " "$cur" val || return 0
@@ -289,6 +328,77 @@ esc_action() {
   fi
 }
 
+print_help_text() {
+  local H=$'\033[1;37m' K=$'\033[38;5;109m' D=$'\033[38;5;245m' R=$'\033[0m'
+  cat <<EOF
+${H}tmux Commands${R} ${D}(prefix: Ctrl-s)${R}
+
+${H}Sessions & Windows${R}
+  ${K}Ctrl-s s${R}        ${D}Sessions switcher popup${R}
+  ${K}Ctrl-s w${R}        ${D}Windows switcher popup${R}
+  ${K}Ctrl-s S${R}        ${D}New session (prompt)${R}
+  ${K}Ctrl-s \$${R}        ${D}Rename session${R}
+  ${K}Ctrl-s N${R}        ${D}Session note${R}
+  ${K}Ctrl-s c${R}        ${D}New window${R}
+  ${K}Ctrl-s ,${R}        ${D}Rename window${R}
+  ${K}Ctrl-s W${R}        ${D}Window label${R}
+  ${K}Ctrl-s &${R}        ${D}Kill window${R}
+  ${K}Ctrl-Tab${R}        ${D}Next window (no prefix)${R}
+  ${K}Ctrl-Shift-Tab${R}  ${D}Previous window (no prefix)${R}
+
+${H}Panes & Splits${R}
+  ${K}Ctrl-s |${R}        ${D}Split side-by-side${R}
+  ${K}Ctrl-s -${R}        ${D}Split top/bottom${R}
+  ${K}Ctrl-s h/j/k/l${R}  ${D}Move between panes${R}
+  ${K}Ctrl-s T${R}        ${D}Pane label${R}
+  ${K}Ctrl-s z${R}        ${D}Zoom / unzoom pane${R}
+  ${K}Ctrl-s x${R}        ${D}Kill pane${R}
+
+${H}Persistence, Reload & Nested tmux${R}
+  ${K}Ctrl-s Alt-s${R}    ${D}Save sessions (resurrect)${R}
+  ${K}Ctrl-s Ctrl-r${R}   ${D}Restore sessions (resurrect)${R}
+  ${K}Ctrl-s r${R}        ${D}Reload tmux config${R}
+  ${K}Ctrl-s d${R}        ${D}Detach client${R}
+  ${K}F12${R}             ${D}Toggle passthrough (nested tmux)${R}
+  ${K}Ctrl-s ?${R}        ${D}Show this command list${R}
+
+${H}Inside Sessions / Windows Switcher${R}
+  ${K}j / k / g / G${R}   ${D}Move cursor (first / last)${R}
+  ${K}J / K${R}           ${D}Scroll preview down / up${R}
+  ${K}Ctrl-d / Ctrl-u${R} ${D}Half-page scroll preview${R}
+  ${K}/  i  a${R}         ${D}Search mode (Esc returns to normal)${R}
+  ${K}c${R}               ${D}Clear search filter & reload${R}
+  ${K}Enter${R}           ${D}Switch to selected session / window${R}
+  ${K}n  (Ctrl-n)${R}     ${D}New session (Sessions view)${R}
+  ${K}e  (Ctrl-e)${R}     ${D}Edit session note / window label${R}
+  ${K}r  (Ctrl-r)${R}     ${D}Rename session / window${R}
+  ${K}x  d  (Ctrl-x)${R}  ${D}Kill session (Sessions view)${R}
+  ${K}w / s${R}           ${D}Switch between Windows / Sessions view${R}
+  ${K}?${R}               ${D}Show this command list${R}
+  ${K}q / Esc${R}         ${D}Close switcher${R}
+EOF
+}
+
+show_help() {
+  if [ "${1:-}" = "--plain" ] || [ ! -t 1 ]; then
+    print_help_text
+    return 0
+  fi
+  if command -v fzf >/dev/null 2>&1; then
+    print_help_text | fzf \
+      --ansi --disabled --no-input --layout=reverse --no-info --no-scrollbar \
+      --pointer=' ' --margin='0,1' \
+      --header='j/k scroll · Ctrl-d/u page · q / Esc / ? close' \
+      --color="${FZF_COLORS},bg+:234" \
+      --bind='j:down,k:up,g:first,G:last,ctrl-d:half-page-down,ctrl-u:half-page-up' \
+      --bind='q:abort,esc:abort,enter:abort,?:abort' || true
+  elif command -v less >/dev/null 2>&1; then
+    print_help_text | less -R
+  else
+    print_help_text
+  fi
+}
+
 run_picker() {
   local mode="$1" list_cmd="$2" preview_cmd="$3" header="$4" norm_keys="$5" active_id="$6"
   shift 6
@@ -311,6 +421,7 @@ run_picker() {
       --bind='J:preview-down,K:preview-up,ctrl-d:preview-half-page-down,ctrl-u:preview-half-page-up' \
       --bind='ctrl-j:down,ctrl-k:up' \
       --bind="c:enable-search+show-input+clear-query+search()+hide-input+disable-search+reload($SELF $list_cmd)" \
+      --bind="?:execute($SELF help)" \
       --bind="/:transform:$SELF search-action $norm_keys" \
       --bind="i:transform:$SELF search-action $norm_keys" \
       --bind="a:transform:$SELF search-action $norm_keys" \
@@ -322,12 +433,12 @@ run_picker() {
 }
 
 run_sessions() {
-  local norm_keys="j,k,g,G,J,K,q,c,/,i,a,n,e,r,x,d,w"
+  local norm_keys="j,k,g,G,J,K,q,c,/,i,a,?,n,e,r,x,d,w"
   local active_sess
   active_sess="$(tmux display-message -p '#{session_name}' 2>/dev/null || true)"
   run_picker \
     sessions list-sessions preview-session \
-    'j/k move · / search · Enter switch · n new · e note · r rename · x kill · w windows · q quit' \
+    $'j/k move · / search · Enter switch · ? help\nn new · e note · r rename · x kill · w win · c clear' \
     "$norm_keys" "$active_sess" \
     --bind="n:execute($SELF new-session)+reload($SELF list-sessions)" \
     --bind="ctrl-n:execute($SELF new-session {q})+reload($SELF list-sessions)" \
@@ -343,12 +454,12 @@ run_sessions() {
 }
 
 run_windows() {
-  local norm_keys="j,k,g,G,J,K,q,c,/,i,a,e,r,s"
+  local norm_keys="j,k,g,G,J,K,q,c,/,i,a,?,e,r,s"
   local active_win
   active_win="$(tmux display-message -p '#{session_name}:#{window_index}' 2>/dev/null || true)"
   run_picker \
     windows list-windows preview-window \
-    'j/k move · / search · Enter jump · e label · r rename · c clear · s sessions · q quit' \
+    $'j/k move · / search · Enter jump · ? help\ne label · r rename · s sessions · c clear · q quit' \
     "$norm_keys" "$active_win" \
     --bind="e:execute($SELF edit-wlabel {1})+reload($SELF list-windows)" \
     --bind="ctrl-e:execute($SELF edit-wlabel {1})+reload($SELF list-windows)" \
@@ -374,6 +485,7 @@ case "$cmd" in
   prompt-wlabel|edit-wlabel) edit_tmux_option w @wlabel "Window label" "${1:-}" ;;
   prompt-note|edit-note)     edit_tmux_option "" @note "Note" "${1:-}" ;;
   kill-session)    kill_session "${1:-}" ;;
+  help)            show_help "${1:-}" ;;
   search-action)   search_action "${1:-}" ;;
   esc-action)      esc_action "${1:-}" "${2:-}" ;;
 esac
