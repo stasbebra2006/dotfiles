@@ -18,7 +18,7 @@ When asked to copy text to the user's clipboard from an agent session inside tmu
 
 Previous Oh My Pi chats are locally preserved. When they are relevant, search prompts in `~/.omp/agent/history.db` and read full transcripts under `~/.omp/agent/sessions/`; `history://` lists harness-registered agents, not the interactive-session archive.
 
-The user's Android phone (`oneplus-8-pro`) is accessible over Tailscale via Termux SSH (`u0_a360@100.81.30.113:8022`, MagicDNS `oneplus-8-pro.swallow-caiman.ts.net`; aliased as `ssh phone` in macOS `~/.ssh/config` with `~/.ssh/id_ed25519`) when Tailscale and Termux `sshd` are running. For setup state, optional next steps (`sshd` auto-start, `Termux:API` verification, Wireless ADB), and bootstrap troubleshooting, read `~/chezmoi/docs/android-phone.md` and `~/chezmoi/docs/troubleshooting/termux.md`.
+The user's Android phone (`oneplus-8-pro`) is accessible over Tailscale via Termux SSH (`u0_a360@100.81.30.113:8022`, MagicDNS `oneplus-8-pro.swallow-caiman.ts.net`; aliased as `ssh phone` in macOS `~/.ssh/config` with `~/.ssh/id_ed25519`), with Termux `~/.bashrc` auto-starting `sshd`, verified `Termux:API`, and locally paired Wireless ADB (`android-tools` in Termux; reconnect port changes after reboot/toggle). For details and troubleshooting notes, read `~/chezmoi/docs/android-phone.md` and `~/chezmoi/docs/troubleshooting/termux.md`.
 
 {{- if eq .chezmoi.os "darwin" }}
 
