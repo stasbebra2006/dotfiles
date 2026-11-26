@@ -65,6 +65,20 @@ OnePlus firmware disables VoLTE/VoWiFi (`carrier_volte_available_bool=false`) fo
 - **`adb shell pm trim-caches 999G` hangs after freeing space:** Reclaimed ~3.8 GiB immediately (`3.5 GiB -> 7.3 GiB` free), then hung waiting on the binder completion callback. Check live `df -h /data` and cancel if it does not return promptly.
 - **Storage symlink & toybox `sort` quirks:** `/sdcard` and `~/storage/shared` are symlinks (`du`/`find` return `0`/empty without a trailing slash; use `/storage/emulated/0/`), and Android toybox `sort` rejects `-h` (use `du -k | sort -nr`).
 
+## Next ideas
+
+- **One-tap Home screen ADB reconnect icon (`Termux:Widget`):** Install `Termux:Widget` from F-Droid and add a `~/.shortcuts/` script that discovers/reconnects local Wireless ADB (and starts `sshd` / Shizuku if down) in a single tap.
+- **System-wide AdGuard DNS via Tailscale:** Configure AdGuard DNS (`94.140.14.14` / `94.140.15.15`, or DoH) in **Tailscale Admin Console -> DNS** so both phone and Mac get ad/tracker blocking without triggering Android's `PrivateDnsBroken` conflict on `tun1`.
+- **Rootless Shizuku apps:** `ShizuWall` (per-app firewall alongside Tailscale without consuming the VPN slot), `Canta` (safe GUI system debloater with restore), `App Ops` (granular hidden permission/wake-lock controls), `Ambient Music Mod` (offline Pixel-style lock-screen song ID), and `DarQ` (selective per-app dark mode).
+- **Mac / Arch <-> Phone Tailscale workflows:**
+  - Sync underground/unreleased tracks straight into `/sdcard/Music` for **Spotify Local Files**.
+  - Mac <-> Phone clipboard (`pbpaste` <-> `termux-clipboard-set`) and quick `scp` file-drop aliases.
+  - Offload large `/sdcard/DCIM/Camera` videos (~25 GiB) to Mac/Arch over Tailscale via `rsync`.
+  - Send `termux-notification` pings when long builds, downloads, or `BI-ML1` runs finish.
+  - Poll `termux-battery-status` for an 80% charge alert to preserve the ~69%-health battery.
+  - `Termux:Widget` remote shortcuts (Wake-on-LAN for Arch, lock Mac) and mobile `tmux` access.
+  - Wireless `scrcpy` from macOS (`scrcpy --turn-screen-off --stay-awake`) for keyboard/trackpad phone control.
+
 ## Secrets boundary
 
 - No passwords or private keys are stored in chezmoi. Keep `~/.ssh/id_ed25519` and Termux password outside Git.
